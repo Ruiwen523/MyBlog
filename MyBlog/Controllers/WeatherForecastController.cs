@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using MyBlog.Data;
 using MyBlog.Models;
 using System;
 using System.Collections.Generic;
@@ -9,11 +10,14 @@ using System.Threading.Tasks;
 
 namespace MyBlog.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [ApiController]
     [Route("[controller]")]
+    [Produces("application/json")] // 宣告控制器的動作支援回應內容類型為 application/json
     public class WeatherForecastController : ControllerBase
     {
+        private readonly BloggingContext myBlogContext;
+
         private static readonly string[] Summaries = new[]
         {
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
@@ -21,9 +25,10 @@ namespace MyBlog.Controllers
 
         private readonly ILogger<WeatherForecastController> _logger;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, BloggingContext _myBlogContext)
         {
             _logger = logger;
+            myBlogContext = _myBlogContext;
         }
 
         [HttpGet]
@@ -38,5 +43,12 @@ namespace MyBlog.Controllers
             })
             .ToArray();
         }
+
+        //[HttpGet]
+        //public IEnumerable<WeatherForecast> GetContextData()
+        //{
+        //    var rng = new Random();
+        //    return myBlogContext
+        //}
     }
 }
