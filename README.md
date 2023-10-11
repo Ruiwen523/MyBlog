@@ -19,9 +19,9 @@
   - 使用 SQLServer LocalDB
 - IDE:
   - 使用 Visual Studio 2022
-  - Visual Studio Code
+  - 搭配 Visual Studio Code
 - 版控工具
-  - 使用個人 GitHub 
+  - 使用 GitHub 
   - 搭配 SourceTree 進行開發維護
 
 ## 內容大致為:  
