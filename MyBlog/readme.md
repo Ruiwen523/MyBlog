@@ -67,6 +67,10 @@ Model DataAnnotations
 
 PM> NuGet\Install-Package Dapper -Version 2.1.11
 
+ref:  
+- https://igouist.github.io/post/2021/05/newbie-3-dapper/
+- https://dotblogs.com.tw/OldNick/2018/01/15/Dapper#Dapper%20-%20Transaction
+
 ### Dapper - Query:
 1. Query
 2. QueryFirstOrDefault 
@@ -78,10 +82,7 @@ PM> NuGet\Install-Package Dapper -Version 2.1.11
 ### 資料型態 (DbTyoe)
 參數一定要指定型態，否則會讓Dapper轉換為預設型態，導致查詢效能變差。  
 ref: 
-1. https://learn.microsoft.com/zh-tw/dotnet/api/system.data.dbtype?view=net-7.0#system-data-dbtype-string  
-2. https://igouist.github.io/post/2021/05/newbie-3-dapper/
-3. https://dotblogs.com.tw/OldNick/2018/01/15/Dapper#Dapper%20-%20Transaction
-
+- https://learn.microsoft.com/zh-tw/dotnet/api/system.data.dbtype?view=net-7.0#system-data-dbtype-string  
 - DbType.AnsiString
   - Varchar
 - DbType.String
@@ -97,4 +98,13 @@ Insert資料可改用Query語法執行，僅須完整 Insert SQL 語句的最後
 後續再來閱讀 
 - BeginTransaction 開啟 SQL Transaction 交易包裝，可Try Catch包起來，若於Commit()發生例外可即時Rollback()
 - 於Dapper實作批次新增/更新/刪除作業
-
+  - 大量新增可用: 
+    1. `StringBuilder`搭配`Foreach`將`List<Model>`組成純SQL語句後送出至`conn.Execute​(sql);`
+    2. 也可這樣用但也許有效能影響 `conn.Execute​(sql, List<Model>);`
+    3. 解決辦法將`List<Model>`物件用進 `List<DynamicParameters>` 裡面再送至`conn.Execute​(sql, new { id = List<DynamicParameters> });`即可
+  - 大量更新/刪除可用:
+    1. `conn.Execute​(sql, new { id = Array[] });` 等同於sql語句中的`where id in`寫法
+    2. 若條件不僅有ID，還有其他欄位篩選且為大量資料，則`conn.Execute​(sql, new { id = List<DynamicParameters> });`
+- 搭配Dapper使用LINQPad 快速產生相對映 SQL Command 查詢結果的 Model.cs 類別
+  - https://kevintsengtw.blogspot.com/2015/10/dapper-linqpad-sql-command.html
+  
