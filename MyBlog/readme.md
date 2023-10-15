@@ -45,7 +45,7 @@ Model DataAnnotations
 逆向工程 {DB First}  
 	1. dotnet tool install --global dotnet-ef  
 	2. dotnet add package Microsoft.EntityFrameworkCore.Design  
-	3. dotnet ef dbcontext scaffold <connection-string> <provider> --data-annotations 產出包含Annotations的Model
+	3. dotnet ef dbcontext scaffold <connection-string> <provider> --data-annotations 產出包含Annotations的Model  
 	4. dotnet ef dbcontext scaffold "Server=(localdb)\MSSQLLocalDB;Database=Blog;Trusted_Connection=True;MultipleActiveResultSets=true" Microsoft.EntityFrameworkCore.SqlServer -o Models  
 	5. dotnet build  
 
