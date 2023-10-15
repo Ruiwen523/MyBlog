@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using MyBlog.Data;
+using System.Data;
+using Microsoft.Data.SqlClient;
 
 namespace MyBlog
 {
@@ -51,6 +53,7 @@ namespace MyBlog
                     }
                 });
 
+                // 可切換api樣板
                 c.SwaggerDoc("v2", new OpenApiInfo { Title = "API Document", Version = "v2" });
             });
 
@@ -58,6 +61,15 @@ namespace MyBlog
 
             services.AddDbContext<BloggingContext>(
                 options => options.UseSqlServer("name=ConnectionStrings:BloggingContext"));
+
+            services.AddScoped<IDbConnection, SqlConnection>(serviceProvider =>
+            {
+                SqlConnection conn = new SqlConnection();
+                //指派連線字串
+                conn.ConnectionString = Configuration.GetConnectionString("BloggingContext");
+                return conn;
+            });
+
         }
 
         // Middleware
@@ -68,20 +80,26 @@ namespace MyBlog
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseSwagger(c =>
-            {
-                c.RouteTemplate = "/api/swagger/{documentName}/swagger.json";
-            });
-
+            app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("v1/swagger.json", "My API V1");
-                c.SwaggerEndpoint("v2/swagger.json", "My API V2");
-                c.RoutePrefix = "api/swagger";
             });
 
+            //app.UseSwagger(c =>
+            //{
+            //    c.RouteTemplate = "/api/swagger/{documentName}/swagger.json";
+            //});
+
+            //app.UseSwaggerUI(c =>
+            //{
+            //    c.SwaggerEndpoint("v1/swagger.json", "My API V1");
+            //    c.SwaggerEndpoint("v2/swagger.json", "My API V2");
+            //    c.RoutePrefix = "api/swagger";
+            //});
+
             app.UseHttpsRedirection();
-           
+
             app.UseRouting();
 
             app.UseAuthorization();
