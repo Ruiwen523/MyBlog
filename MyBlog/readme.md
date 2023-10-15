@@ -79,6 +79,8 @@ ref:
 執行Insert、Update、Delete、Stored Procedure時使用。  
 - Execute
 
+>除上述列出三個常用方法外，其餘全部可參考Dapper.dll裡面的SqlMapper.cs主程式
+
 ### 資料型態 (DbTyoe)
 參數一定要指定型態，否則會讓Dapper轉換為預設型態，導致查詢效能變差。  
 ref: 
