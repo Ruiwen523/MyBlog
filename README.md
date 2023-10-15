@@ -32,8 +32,8 @@
 > 前端選用: 008天絕對看不完的Vue.js3指南
 
 
-## 1.目前正在練習Vue概念中預計到後面筆記做好後，搭配官網 document api 和參考大量部落客前輩文章 並開始實作
-## 2.同時只要想到後端該添加什麼東西進來，就會跑回來實作一下 比方說後面的DI 實作的Services.AddScope<IServices, 實作的Services>()，CORS MiddleWare，ActionFilter的權限檢核(Menu 關聯 Role、User物件null檢核(閒置太久))，Data Annotation等驗證屬性/Model.IsVail/自定義可重用的擴充標註，SSO方式規則(搭配IV key等編碼邏輯撰寫之Token)，通用package類別庫的撰寫，添加資安防範等
+#### 1.目前正在練習Vue概念中預計到後面筆記做好後，搭配官網 document api 和參考大量部落客前輩文章 並開始實作
+#### 2.同時只要想到後端該添加什麼東西進來，就會跑回來實作一下 比方說後面的DI 實作的Services.AddScope<IServices, 實作的Services>()，CORS MiddleWare，ActionFilter的權限檢核(Menu 關聯 Role、User物件null檢核(閒置太久))，Data Annotation等驗證屬性/Model.IsVail/自定義可重用的擴充標註，SSO方式規則(搭配IV key等編碼邏輯撰寫之Token)，通用package類別庫的撰寫，添加資安防範等
 
-註記: 但有一個大前提 全部都要從頭來過 從無到有 化為自己的經驗 所以到整個專案完成 要花很長時間去大量閱讀，因此一切不會搞得那麼多，會先將部落格「清單頁面/內容頁面」刻好，套版套好，我能自己撰寫Json透過後端API匯入或者Post上去 所需的後端+前端建設完成後再回頭添加這些東西。
+#### 註記: 但有一個大前提 全部都要從頭來過 從無到有 化為自己的經驗 所以到整個專案完成 要花很長時間去大量閱讀，因此一切不會搞得那麼多，會先將部落格「清單頁面/內容頁面」刻好，套版套好，我能自己撰寫Json透過後端API匯入或者Post上去 所需的後端+前端建設完成後再回頭添加這些東西。
 
