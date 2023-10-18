@@ -166,3 +166,107 @@ ref:
 
 ### Memo 
 使用appsetting.json來讀取NLog配置，將放在後續回頭重構時再來實作
+
+# 寫個BaseController把Response包成Headel和Body物件格式
+
+- 可以直接物件出去讓前端自由操作
+- 也可以Json出去由前端自行轉譯成JObject
+
+ref:
+- Enum的描述`[Description("OK")]`屬性 https://www.ruyut.com/2022/09/csharp-enum-description.html
+
+1. 先創建空的`BaseController.cs` 然後看是API控制器就繼承`ControllerBase`，若為MVC控制器就繼承`Controller`  
+
+BaseController.cs
+``` C#
+using MyBlog.Models.Common;
+using static MyBlog.Common.Enums.BlogEnum;
+
+namespace MyBlog.Controllers
+{    
+    [ApiController]
+    public class BaseController : ControllerBase
+    {
+        [NonAction]
+        public ResponseBox<T> Done<T>(T body, StateCode code = StateCode.OK) 
+        {
+            return new ResponseBox<T>(body, code);
+        }
+    }
+}
+
+```
+1. 簡單創建一個`ResponseBox.cs`模型，裡面屬性放`Header`與`Body`
+   - 其中`Header`要再創建一個類別，屬性放`Message`和`StateCode`
+   - `StateCode`型別為`enum` 結合上述ref: 提供的擷取`Attribute`的擴充方法，取得描述上的文字  
+  
+ResponseBox.cs
+``` C#
+using MyBlog.Common.EnumExtenstion;
+using static MyBlog.Common.Enums.BlogEnum;
+
+namespace MyBlog.Models.Common
+{
+    public class ResponseBox<T>
+    {
+        public ResponseBox(T body, StateCode code = StateCode.OK)
+        {
+            Header.StateCode = code;
+            Header.Message = code.GetDescription();
+            Body = body;
+        }
+
+        public Header Header { get; set; } = new Header();
+
+        public T Body { get; set; }
+    }
+}
+```
+
+Header.cs
+``` C#
+using static MyBlog.Common.Enums.BlogEnum;
+
+namespace MyBlog.Models.Common
+{
+    public class Header
+    {
+        public string Message { get; set; }
+        public StateCode StateCode { get; set; }
+    }
+}
+```
+StateCode.cs
+``` C#
+using System.ComponentModel;
+
+namespace MyBlog.Common.Enums
+{
+    public class BlogEnum
+    {
+        public enum StateCode 
+        {
+            [Description("成功拿到資料拉")]
+            OK = 200,
+
+            [Description("發送失敗拉")]
+            Fail = 404
+        }
+    }
+}
+```
+BlogController.cs
+``` C#
+using MyBlog.Models.Common;
+using static MyBlog.Common.Enums.BlogEnum;
+// GET: api/Blogs
+[HttpGet]
+public ActionResult<ResponseBox<List<Blog>>> GetBlogs()
+{
+	_logger.LogInformation("Hello, this is the BlogList!");
+	var service = new BlogService(_conn.ConnectionString);
+	var blogs = service.GetBlogs();
+
+	return Done(blogs, StateCode.OK);
+}
+```
