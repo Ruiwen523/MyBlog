@@ -94,7 +94,7 @@ ref:
 - DbType.StringFixedLength
   - NChar
 
-## Memo  
+### Memo  
 Insert資料可改用Query語法執行，僅須完整 Insert SQL 語句的最後一行加上`@@IDENTITY` 或 `LAST_INSERT_ID()`，以及改用 int 變數接回`conn.Query<int>(sql, param)`結果即可實作
 
 後續再來閱讀 
@@ -110,3 +110,59 @@ Insert資料可改用Query語法執行，僅須完整 Insert SQL 語句的最後
 - 搭配Dapper使用LINQPad 快速產生相對映 SQL Command 查詢結果的 Model.cs 類別
   - https://kevintsengtw.blogspot.com/2015/10/dapper-linqpad-sql-command.html
   
+
+# 加入NLog
+
+ref: 
+- 官網Github教學: https://github.com/NLog/NLog/wiki/Getting-started-with-ASP.NET-Core-3
+- 配置更多詳盡解說: https://github.com/NLog/NLog/wiki/Configuration-file
+- 使用appsetting.json來讀取NLog配置: https://github.com/NLog/NLog.Extensions.Logging/wiki/NLog-configuration-with-appsettings.json
+  
+1. Nuget安裝 
+   1. NLog.Web.AspNetCore
+   2. NLog.Extensions.Logging
+2. 在專案的根目錄中建立 nlog.config（全部小寫）檔案
+   1. 修改靜態nlog.config屬性 建置動作為"有更新才複製"
+   2. 修正其中的Log輸出目錄標籤`internalLogFile`至專案目錄
+   3. 修改`<target>`標籤中的fileName屬性為`專案目錄\log\{fileName}.log`
+3. 更新Program.cs
+   1. using NLog;
+   2. using NLog.Web;
+4. 調整appsettings.json中的"LogLevel"裡面的"default"為"Trace" 
+   - 否則logger.SetMinimumLevel()中的最低追蹤等級會被覆寫 
+   - 包含appsettings中的 .dev/st/uat/prod 各環境有各種紀錄層級
+
+
+- 符合規則條件(roles)的都將寫入(writeTo)相應的目標(target)
+- 規則將由上至下按順序讀取至駔後一個 
+- 於本例中 最後一條Role為`*`也就是:全部的`{NameSpace.ClassName}`產生的log都將符合條件
+  
+``` config
+<?xml version="1.0" encoding="utf-8" ?>
+<nlog xmlns="http://www.nlog-project.org/schemas/NLog.xsd"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<!--自定義變數-->
+	<variable name="logDirectory" value="logs/${shortdate}"/>
+
+	<targets>
+		<!--輸出目標為實體檔案-->
+		<target name="logfile" xsi:type="File" fileName="C:\Projects\MyBlog\${logDirectory}\MyBlog.txt"/>
+
+		<!--輸出目標為控制台-->
+		<target name="logconsole" xsi:type="Console" />
+	</targets>
+	
+	<rules>
+		<!--忽略所有非關鍵的Microsoft紀錄-->
+		<logger name="Microsoft.*" maxlevel="Info" final="true" />
+
+		<logger name="*" minlevel="Debug" writeTo="logfile" />
+		<logger name="*" minlevel="Debug" writeTo="logconsole" />
+	</rules>
+
+</nlog> 
+```
+
+### Memo 
+使用appsetting.json來讀取NLog配置，將放在後續回頭重構時再來實作

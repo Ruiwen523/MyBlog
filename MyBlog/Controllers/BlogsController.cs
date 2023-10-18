@@ -10,6 +10,8 @@ using Microsoft.Extensions.Configuration;
 using MyBlog.Data;
 using MyBlog.Models;
 using MyBlog.Services;
+using Microsoft.Extensions.Logging;
+
 
 namespace MyBlog.Controllers
 {
@@ -19,17 +21,22 @@ namespace MyBlog.Controllers
     {
         private readonly BloggingContext _context;
         private readonly IDbConnection _conn;
+        private readonly ILogger<BlogsController> _logger;
 
-        public BlogsController(BloggingContext context, IDbConnection dbConnection)
+        public BlogsController(BloggingContext context,
+                               IDbConnection dbConnection,
+                               ILogger<BlogsController> logger)
         {
             _context = context;
             _conn = dbConnection;
+            _logger = logger;
         }
 
         // GET: api/Blogs
         [HttpGet]
         public ActionResult<List<Blog>> GetBlogs()
         {
+            _logger.LogInformation("Hello, this is the BlogList!");
             var service = new BlogService(_conn.ConnectionString);
             var blogs = service.GetBlogs();
 
