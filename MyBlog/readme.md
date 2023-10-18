@@ -315,4 +315,10 @@ MVC中的JSON編/解碼器
 
 ## 建立DI註冊器
 
-1. 批次註冊 Lading...
+1. 一般註冊模式
+3. 批次註冊 
+4. 套件Autofac 
+5. 檔名尾巴Service
+6. 屬性?
+   
+Lading... 
