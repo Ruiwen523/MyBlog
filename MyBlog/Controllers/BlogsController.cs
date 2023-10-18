@@ -11,13 +11,14 @@ using MyBlog.Data;
 using MyBlog.Models;
 using MyBlog.Services;
 using Microsoft.Extensions.Logging;
-
+using MyBlog.Models.Common;
+using static MyBlog.Common.Enums.BlogEnum;
 
 namespace MyBlog.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BlogsController : ControllerBase
+    public class BlogsController : BaseController
     {
         private readonly BloggingContext _context;
         private readonly IDbConnection _conn;
@@ -34,13 +35,15 @@ namespace MyBlog.Controllers
 
         // GET: api/Blogs
         [HttpGet]
-        public ActionResult<List<Blog>> GetBlogs()
+        public ActionResult<ResponseBox<List<Blog>>> GetBlogs()
         {
             _logger.LogInformation("Hello, this is the BlogList!");
             var service = new BlogService(_conn.ConnectionString);
             var blogs = service.GetBlogs();
 
-            return blogs; //await _context.Blogs.AsNoTracking().ToListAsync();
+            //return blogs; //await _context.Blogs.AsNoTracking().ToListAsync();
+
+            return Done(blogs, StateCode.OK);
         }
 
         // GET: api/Blogs/5
