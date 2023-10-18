@@ -170,37 +170,18 @@ ref:
 # 寫個BaseController把Response包成Headel和Body物件格式
 
 - 可以直接物件出去讓前端自由操作
-- 也可以Json出去由前端自行轉譯成JObject
+- 也可以Json出去由前端自行轉譯成JsObject: `JSON.parse('string')`
 
 ref:
 - Enum的描述`[Description("OK")]`屬性 https://www.ruyut.com/2022/09/csharp-enum-description.html
 
 1. 先創建空的`BaseController.cs` 然後看是API控制器就繼承`ControllerBase`，若為MVC控制器就繼承`Controller`  
 
-BaseController.cs
-``` C#
-using MyBlog.Models.Common;
-using static MyBlog.Common.Enums.BlogEnum;
-
-namespace MyBlog.Controllers
-{    
-    [ApiController]
-    public class BaseController : ControllerBase
-    {
-        [NonAction]
-        public ResponseBox<T> Done<T>(T body, StateCode code = StateCode.OK) 
-        {
-            return new ResponseBox<T>(body, code);
-        }
-    }
-}
-
-```
-1. 簡單創建一個`ResponseBox.cs`模型，裡面屬性放`Header`與`Body`
+2. 簡單創建一個`ResponseBox.cs`模型，裡面屬性放`Header`與`Body`
    - 其中`Header`要再創建一個類別，屬性放`Message`和`StateCode`
    - `StateCode`型別為`enum` 結合上述ref: 提供的擷取`Attribute`的擴充方法，取得描述上的文字  
   
-ResponseBox.cs
+### ResponseBox.cs
 ``` C#
 using MyBlog.Common.EnumExtenstion;
 using static MyBlog.Common.Enums.BlogEnum;
@@ -223,7 +204,7 @@ namespace MyBlog.Models.Common
 }
 ```
 
-Header.cs
+### Header.cs
 ``` C#
 using static MyBlog.Common.Enums.BlogEnum;
 
@@ -236,7 +217,7 @@ namespace MyBlog.Models.Common
     }
 }
 ```
-StateCode.cs
+### StateCode.cs
 ``` C#
 using System.ComponentModel;
 
@@ -255,7 +236,28 @@ namespace MyBlog.Common.Enums
     }
 }
 ```
-BlogController.cs
+
+### BaseController.cs
+``` C#
+using MyBlog.Models.Common;
+using static MyBlog.Common.Enums.BlogEnum;
+
+namespace MyBlog.Controllers
+{    
+    [ApiController]
+    public class BaseController : ControllerBase
+    {
+        [NonAction]
+        public ResponseBox<T> Done<T>(T body, StateCode code = StateCode.OK) 
+        {
+            return new ResponseBox<T>(body, code);
+        }
+    }
+}
+
+```
+
+### BlogController.cs
 ``` C#
 using MyBlog.Models.Common;
 using static MyBlog.Common.Enums.BlogEnum;
@@ -270,3 +272,47 @@ public ActionResult<ResponseBox<List<Blog>>> GetBlogs()
 	return Done(blogs, StateCode.OK);
 }
 ```
+## 前端HTML接收應用
+
+``` JavaScript
+() => {
+	$.ajax({
+		type: 'POST',
+		url: '@Url.Action("Action","Controller")',
+		data: $.param({
+			'name':'value',
+			'name':'value'
+		}),
+		success: result => {
+			if (result.header.StateCode === '200')
+				something...
+			else
+				alert(result.header.Message);
+		}
+	})
+}
+```
+
+### Memo
+在一些前端$.post中傳遞的data多為物件格式，其中又有陣列等型別，此時就要用`jQuery.param()`建立適合在Post傳遞中的JQuery物件，否則會傳遞成奇形怪狀的字串傳遞。  
+  官方文檔: https://api.jquery.com/jquery.param/
+
+MVC中的JSON編/解碼器
+1. System.Text.Json
+   - 內建 ASP.NET Core 3以上推出；編碼效能較`Newtonsoft.Json`好，但功能卻較少。
+2. Newtonsoft.Json
+   - 內建
+3. Utf8.Json
+   - 第三方高效能套件 於編/解碼效能高於`System.Text.Json` 與`jil`相比編碼勝過它。
+4. jil
+   - 第三方高效能套件 於編/解碼效能高於`System.Text.Json` 與`Utf8.Json`相比解碼勝過它。
+5. Controller.Json()
+   - 僅Controller
+6. IJsonHelper
+   - 僅Razor View
+
+若要再Razor View前台的JS使用，須搭配`@Html.Raw(jsonStr);`表示不做HTML編碼，即可再JS正常使用它。
+
+## 建立DI註冊器
+
+1. 批次註冊 Lading...
