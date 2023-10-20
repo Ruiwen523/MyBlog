@@ -323,7 +323,7 @@ MVC中的JSON編/解碼器
 
 ref:
 - https://www.stevejgordon.co.uk/aspnet-core-dependency-injection-what-is-the-iservicecollection 
-- https://www.youtube.com/@TalllKaiCoding/about
+- https://www.youtube.com/watch?v=g5YixtianHo
 
 
 ### 在同一個interface注入多個Service並依照傳入不同的Type決定實作哪一個Service.cs
