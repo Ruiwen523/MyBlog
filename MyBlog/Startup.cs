@@ -15,6 +15,8 @@ using Microsoft.EntityFrameworkCore;
 using MyBlog.Data;
 using System.Data;
 using Microsoft.Data.SqlClient;
+using MyBlog.Services.Interface;
+using MyBlog.Services;
 
 namespace MyBlog
 {
@@ -30,6 +32,20 @@ namespace MyBlog
         // DI Container
         public void ConfigureServices(IServiceCollection services)
         {
+
+            //services.AddSingleton<IBlogService, BlogService>();
+            services.AddSingleton<IPay, PayMoney1Service>();
+            services.AddSingleton<IPay, PayMoney2Service>();
+
+            services.AddScoped<IDbConnection, SqlConnection>(serviceProvider =>
+            {
+                //指派連線字串
+                SqlConnection conn = new SqlConnection();
+                conn.ConnectionString = Configuration.GetConnectionString("BloggingContext");
+                return conn;
+            });
+
+
             services.AddControllers();
 
             services.AddSwaggerGen(c =>
@@ -61,15 +77,6 @@ namespace MyBlog
 
             services.AddDbContext<BloggingContext>(
                 options => options.UseSqlServer("name=ConnectionStrings:BloggingContext"));
-
-            services.AddScoped<IDbConnection, SqlConnection>(serviceProvider =>
-            {
-                SqlConnection conn = new SqlConnection();
-                //指派連線字串
-                conn.ConnectionString = Configuration.GetConnectionString("BloggingContext");
-                return conn;
-            });
-
         }
 
         // Middleware

@@ -1,6 +1,5 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
-using MyBlog.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;

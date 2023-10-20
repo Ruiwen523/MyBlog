@@ -316,9 +316,110 @@ MVC中的JSON編/解碼器
 ## 建立DI註冊器
 
 1. 一般註冊模式
-3. 批次註冊 
-4. 套件Autofac 
-5. 檔名尾巴Service
-6. 屬性?
-   
+2. 批次註冊 
+3. 套件Autofac 
+4. 檔名尾巴Service
+5. 屬性?
+
+ref:
+- https://www.stevejgordon.co.uk/aspnet-core-dependency-injection-what-is-the-iservicecollection 
+- https://www.youtube.com/@TalllKaiCoding/about
+
+
+### 在同一個interface注入多個Service並依照傳入不同的Type決定實作哪一個Service.cs
+``` C#
+
+// Startup.cs
+public void ConfigureServices(IServiceCollection services)
+{    
+    services.AddSingleton<IPay, PayMoney1Service>();
+    services.AddSingleton<IPay, PayMoney2Service>();
+}
+
+// PayMoney1Service.cs
+public class PayMoney1Service : IPay
+{
+    public string Type => "I Am Money One.";
+
+    public PayMoney Pay()
+    {
+        var obj = new PayMoney() 
+        {
+            Cost = 123,
+            PayOwner = "One"
+        };            
+
+        return obj;
+    }
+}
+
+// PayMoney2Service.cs
+public class PayMoney2Service : IPay
+{
+    public string Type => "I Am Money Two.";
+
+    public PayMoney Pay()
+    {
+        var obj = new PayMoney()
+        {
+            Cost = 321,
+            PayOwner = "Two"
+        };
+        return obj;
+    }
+}
+
+// PayController.cs
+protected IEnumerable<IPay> _pay { get; set; }
+
+public PayController(IEnumerable<IPay> pay) 
+{
+    _pay = pay;            
+}
+
+// POST: api/PayMoney
+[HttpPost]
+public ActionResult<ResponseBox<PayMoney>> PayMoney(string PayMode)
+{
+    var PostNeedCost = new PayMoney();
+    if (PayMode == "I Am Money One.")
+    {
+        PostNeedCost = _pay.Where(m => m.Type.Equals(PayMode)).Single().Pay();
+    }
+    else
+    {
+        PostNeedCost = _pay.Where(m => m.Type.Equals("I Am Money Two.")).Single().Pay();
+    }
+
+    return Done(PostNeedCost);
+}
+```
+成功依照所傳入Type取回資料
+``` Json
+// 第一種Type
+{
+  "header": {
+    "message": "成功拿到資料拉",
+    "stateCode": 200
+  },
+  "body": {
+    "cost": 123,
+    "payOwner": "One"
+  }
+}
+
+// 第二種Type
+{
+  "header": {
+    "message": "成功拿到資料拉",
+    "stateCode": 200
+  },
+  "body": {
+    "cost": 321,
+    "payOwner": "Two"
+  }
+}
+```
+
+
 Lading... 
