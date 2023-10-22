@@ -19,7 +19,8 @@ namespace MyBlog.Extensions
 
         public static IServiceCollection AddRegisterDIConfig(this IServiceCollection services) 
         {
-            // 研究相依問題中
+            /* 這裡要注意 當商業邏輯相依於服務底層時，生命週期長的不可相依短的，
+             * 儘管真的發生實際在執行時，短的也會變為跟長的相同的生命週期。*/
             services.AddScoped<IServicesBase, ServicesBase>();
             services.AddScoped<IBlogService, BlogService>();
             services.AddScoped<IPay, PayMoney1Service>();

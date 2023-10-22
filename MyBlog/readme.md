@@ -18,17 +18,23 @@ M: ConfigureServices()
 
 命名空間中找到 System.ComponentModel.DataAnnotations 的屬性標記模型，以協助驅動 Swagger UI 元件。  
 ex: [Required]、[DefaultValue(false)] 
-
 Model DataAnnotations  
 [Column(TypeName = "nvarchar(24)")]  
 
 
+
 ## Error Msg :
-	- Failed to load API definition.
-    	- 解決方法 
-          1. 檢查所有Action是否有明確指定[HttpGet]、[Http Post]
-          2. 檢查是否有重複的return回傳物件
-    	- 
+
+- Failed to load API definition.
+	- 解決方法 
+      1. 檢查所有Action是否有明確指定[HttpGet]、[Http Post]
+      2. 檢查是否有重複的return回傳物件   
+- SwaggerGeneratorException: Actions require a unique method/path combination for Swagger/OpenAPI 3.0.
+	- 解決方法
+    	1. [Route("FullPath")]
+    	2. [HttpGet("ActionName")]
+    	3. [HttpPatch("GetTestBlog/")]
+    	4. [Route("api/[controller]/[action]")]
 
 # 安裝 EFCore SqlServer & Tools
 安裝 dotnet-ef 全域工具 (.NET CLI Global Tool)  
@@ -342,7 +348,7 @@ ref:
      - 優: 適合處理併發請求
 4. 從控制器存取應用程式或組態設定是常見的模式。 [ASP.NET Core 選項模式][1]中所述的選項模式是管理設定的慣用方法。 一般而言，不要將 IConfiguration 直接插入至控制器。 
 5. [SOLID][2] 原則參考1
-6. 
+6. 看看別人怎麼做: https://www.youtube.com/watch?v=DQxGDFZn_6Y&list=PLneJIGUTIItsqHp_8AbKWb7gyWDZ6pQyz&index=55
 
 [1]: <https://learn.microsoft.com/zh-tw/aspnet/core/mvc/controllers/dependency-injection?view=aspnetcore-3.1> "ASP.NET Core 中的選項模式"
 [2]: <https://oldmo860617.medium.com/%E6%9C%9D%E6%9B%B4%E5%A5%BD%E7%9A%84-ooc-%E8%B5%B0%E5%8E%BB-ioc-%E6%8E%A7%E5%88%B6%E5%8F%8D%E8%BD%89%E8%88%87-di-%E4%BE%9D%E8%B3%B4%E6%B3%A8%E5%85%A5-b7fed15ff058> "SOLID"
@@ -354,9 +360,48 @@ ref:
 於專案開發中後期會有越來越多的`Service`會需要在`StartUp.cs`中注入，為了保持`StartUp.cs`的整潔會需要將大量服務註冊的`Function`移至擴充方法註冊
 
 於專案中Create Folder "Extensions" 目錄
-ref:  
-1. https://learn.microsoft.com/zh-tw/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-3.1
 
+ref:  
+1. 官方文檔: https://learn.microsoft.com/zh-tw/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-3.1
+
+RegisterDIConfig.cs
+``` C#
+public static class RegisterDIConfig
+{
+    public static IServiceCollection AddConfig(this IServiceCollection services, IConfiguration config)
+    {
+        services.Configure<AppSettingsOptions>(config.GetSection("AppSettings"));
+
+        return services;
+    }
+
+    public static IServiceCollection AddRegisterDIConfig(this IServiceCollection services) 
+    {
+        /* 這裡要注意 當商業邏輯相依於服務底層時，生命週期長的不可相依短的，
+          * 儘管真的發生實際在執行時，短的也會變為跟長的相同的生命週期。*/
+        services.AddScoped<IServicesBase, ServicesBase>();
+        services.AddScoped<IBlogService, BlogService>();
+        services.AddScoped<IPay, PayMoney1Service>();
+        services.AddScoped<IPay, PayMoney2Service>();
+
+        // 嘗試註冊至DI Container如未存在則Create，反之忽略。
+        // services.TryAddSingleton<IBlogService, BlogService>();
+
+        return services;
+    }
+}
+```
+
+Startup.cs
+``` C#
+public void ConfigureServices(IServiceCollection services)
+{
+    // DI 相關註冊群組移至擴充方法
+    services.AddConfig(Configuration)
+            .AddRegisterDIConfig();
+    ...
+}
+```
 
 ### 在同一個interface注入多個Service並依照Request時傳入不同的Type決定實作哪一個Service.cs
 
@@ -458,7 +503,7 @@ public ActionResult<ResponseBox<PayMoney>> PayMoney(string PayMode)
 }
 ```
 
-### 避免實例化相依性注入
+### 避免實例化相依性注入 (待研究)
 
 待閱文章:  
 1. Resolving instances with ASP.NET Core DI from within ConfigureServices
@@ -467,13 +512,18 @@ ref:
 - https://stackoverflow.com/questions/32459670/resolving-instances-with-asp-net-core-di-from-within-configureservices
 
 
-Lading... 
-
-
+> 其餘後面再來研究
 
 ## 壓力測試 (待研究)
+
+建好之後來玩  
+
 ref: 
 - https://blog.twjoin.com/%E6%8B%93%E5%B1%95%E6%8A%80%E8%83%BD%E6%A8%B9%E4%B9%8B%E5%A3%93%E5%8A%9B%E6%B8%AC%E8%A9%A6-stress-test-%E7%AF%87-59b3d184b804
 
 
 Lading... 
+
+## Middleware 中介軟體
+ref:
+  1. https://learn.microsoft.com/zh-tw/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.1
