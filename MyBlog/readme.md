@@ -543,7 +543,7 @@ Lading...
 
 ## 自定義擴充[ValidationAttribute] 應用實作
 
-1. 可重用的Regex 比如整數+小數位數 對應DB長度 
+1. 可重用的Regex驗證 比如整數+小數位數 對應DB`decimal(8, 4)`長度 
 2. 字串的英數字編碼、加上Regex與相關邏輯去把非中文擷取出來比對後，僅將 屬性成員中非中文部分進行編碼
 
 Lading... 
