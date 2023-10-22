@@ -522,8 +522,14 @@ ref:
 - https://blog.twjoin.com/%E6%8B%93%E5%B1%95%E6%8A%80%E8%83%BD%E6%A8%B9%E4%B9%8B%E5%A3%93%E5%8A%9B%E6%B8%AC%E8%A9%A6-stress-test-%E7%AF%87-59b3d184b804
 
 
-Lading... 
-
 ## Middleware 中介軟體
 ref:
   1. https://learn.microsoft.com/zh-tw/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.1
+
+
+Lading... 
+
+## Appsetting.{environment}.json
+實作依據環境變數讀取不同的Server環境變數設定檔，最直接是Log Level與ConnectionString，一些API的設定也會不同等。
+
+Lading... 
