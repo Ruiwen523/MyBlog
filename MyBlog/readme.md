@@ -533,3 +533,17 @@ Lading...
 實作依據環境變數讀取不同的Server環境變數設定檔，最直接是Log Level與ConnectionString，一些API的設定也會不同等。
 
 Lading... 
+
+
+## ActionFilter 應用實作
+1. 如果今天有人知道 Get/Post等 路由除了經過Token等有效驗證外，應還要檢查是否有該Controller/Action權限。
+2. 假使今天有個控制器都是在做查詢類的情境，那可能會有完全共用的輸出(Component View)，其所需的Response Model物件肯定也一樣，此時就可以使用，但這總感覺不太對[Filter]味，待研究`[ActionFilter]`實務上究竟是如還運用。
+
+Lading... 
+
+## 自定義擴充[ValidationAttribute] 應用實作
+
+1. 可重用的Regex 比如整數+小數位數 對應DB長度 
+2. 字串的英數字編碼、加上Regex與相關邏輯去把非中文擷取出來比對後，僅將 屬性成員中非中文部分進行編碼
+
+Lading... 
