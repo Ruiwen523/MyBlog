@@ -18,7 +18,9 @@ using Microsoft.Extensions.Options;
 
 namespace MyBlog.Controllers
 {
+    
     [Route("api/[controller]")]
+    //[Route("api/[controller]/[action]")]
     [ApiController]
     public class BlogsController : BaseController
     {
@@ -40,13 +42,22 @@ namespace MyBlog.Controllers
             _blogService = blogService;
             _options = options.Value;
         }
+        
+        //[HttpGet(Name = nameof(GetTestBlog))]
+        [HttpGet("GetTestBlog")]
+        //[Route("api/GetTestBlog/")]
+        //[HttpPatch("GetTestBlog/")]
+        public ActionResult<ResponseBox<Empty>> GetTestBlog()
+        {
+            return Done();
+        }
 
         // GET: api/Blogs
         [HttpGet]
         public ActionResult<ResponseBox<List<Blog>>> GetBlogs()
         {
-            // Controller 存放控制流程的邏輯
-            // Service 存放商業邏輯
+            // Controller 用來存放控制流程的邏輯
+            // Service 用來存放商業邏輯
 
             _logger.LogInformation("Hello, this is the BlogList!");
             _logger.LogInformation(_options.Author);
@@ -56,12 +67,12 @@ namespace MyBlog.Controllers
 
             //return blogs; //await _context.Blogs.AsNoTracking().ToListAsync();
 
-            return Done(blogs, StateCode.OK);
+            return Done(blogs);
         }
 
         // GET: api/Blogs/5
         [HttpGet("{id}", Name = nameof(GetBlog))]
-        public ActionResult<Blog> GetBlog(int id)
+        public ActionResult<ResponseBox<Blog>> GetBlog(int id)
         {
             var blog = _blogService.GetBlog(id);
             //var blog = await _context.Blogs.FindAsync(id);
@@ -71,7 +82,7 @@ namespace MyBlog.Controllers
                 return NotFound();
             }
 
-            return blog;
+            return Done(blog);
         }
 
         // PUT: api/Blogs/5

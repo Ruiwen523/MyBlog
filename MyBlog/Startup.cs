@@ -52,6 +52,7 @@ namespace MyBlog
 
             services.AddSwaggerGen(c =>
             {
+                //c.IgnoreObsoleteProperties();
                 // 影響SwaggerUI抬頭顯示內容
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
