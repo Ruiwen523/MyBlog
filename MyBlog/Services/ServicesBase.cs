@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
+using MyBlog.Services.Interface;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -7,12 +8,13 @@ using System.Linq;
 
 namespace MyBlog.Services
 {
-    public class ServicesBase
+    public class ServicesBase : IServicesBase
     {
         private string _dbConnectionString;
-        public ServicesBase(string ConnectionString)
+
+        public ServicesBase(IDbConnection _conn)
         {
-            _dbConnectionString = ConnectionString;
+            _dbConnectionString = _conn.ConnectionString;
         }
 
         /// <summary>

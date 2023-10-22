@@ -13,6 +13,8 @@ using MyBlog.Services;
 using Microsoft.Extensions.Logging;
 using MyBlog.Models.Common;
 using static MyBlog.Common.Enums.BlogEnum;
+using MyBlog.Services.Interface;
+using Microsoft.Extensions.Options;
 
 namespace MyBlog.Controllers
 {
@@ -23,23 +25,34 @@ namespace MyBlog.Controllers
         private readonly BloggingContext _context;
         private readonly IDbConnection _conn;
         private readonly ILogger<BlogsController> _logger;
+        private readonly IBlogService _blogService;
+        private readonly AppSettingsOptions _options;
 
         public BlogsController(BloggingContext context,
                                IDbConnection dbConnection,
-                               ILogger<BlogsController> logger)
+                               ILogger<BlogsController> logger,
+                               IBlogService blogService,
+                               IOptions<AppSettingsOptions> options)
         {
             _context = context;
             _conn = dbConnection;
             _logger = logger;
+            _blogService = blogService;
+            _options = options.Value;
         }
 
         // GET: api/Blogs
         [HttpGet]
         public ActionResult<ResponseBox<List<Blog>>> GetBlogs()
         {
+            // Controller 存放控制流程的邏輯
+            // Service 存放商業邏輯
+
             _logger.LogInformation("Hello, this is the BlogList!");
-            var service = new BlogService(_conn.ConnectionString);
-            var blogs = service.GetBlogs();
+            _logger.LogInformation(_options.Author);
+            _logger.LogInformation(_options.WebSite);
+
+            var blogs = _blogService.GetBlogs();
 
             //return blogs; //await _context.Blogs.AsNoTracking().ToListAsync();
 
@@ -50,8 +63,7 @@ namespace MyBlog.Controllers
         [HttpGet("{id}", Name = nameof(GetBlog))]
         public ActionResult<Blog> GetBlog(int id)
         {
-            var service = new BlogService(_conn.ConnectionString);
-            var blog = service.GetBlog(id);
+            var blog = _blogService.GetBlog(id);
             //var blog = await _context.Blogs.FindAsync(id);
 
             if (blog == null)
@@ -66,9 +78,7 @@ namespace MyBlog.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBlog(int id, Blog blog)
         {
-            var service = new BlogService(_conn.ConnectionString);
-            var resCount = service.UpdateBlog(blog);
-
+            var resCount = _blogService.UpdateBlog(blog);
 
             if (id != blog.BlogId)
             {
@@ -97,11 +107,10 @@ namespace MyBlog.Controllers
         }
 
         // POST: api/Blogs
-        [HttpPost(Name =nameof(PostBlog))]
+        [HttpPost(Name = nameof(PostBlog))]
         public async Task<ActionResult<Blog>> PostBlog(Blog blog)
         {
-            var service = new BlogService(_conn.ConnectionString);
-            var resCount = service.InsertBlog(blog);
+            var resCount = _blogService.InsertBlog(blog);
 
             _context.Blogs.Add(blog);
             await _context.SaveChangesAsync();
@@ -113,9 +122,7 @@ namespace MyBlog.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Blog>> DeleteBlog(int id)
         {
-            var service = new BlogService(_conn.ConnectionString);
-            var resCount = service.DeleteBlog(id);
-
+            var resCount = _blogService.DeleteBlog(id);
 
             var blog = await _context.Blogs.FindAsync(id);
             if (blog == null)
@@ -135,3 +142,4 @@ namespace MyBlog.Controllers
         }
     }
 }
+

@@ -20,8 +20,8 @@ namespace MyBlog.Extensions
         public static IServiceCollection AddRegisterDIConfig(this IServiceCollection services) 
         {
             // 研究相依問題中
-            //services.AddScoped<IServicesBase, ServicesBase>();
-            //services.AddScoped<IBlogService, BlogService>();
+            services.AddScoped<IServicesBase, ServicesBase>();
+            services.AddScoped<IBlogService, BlogService>();
             services.AddScoped<IPay, PayMoney1Service>();
             services.AddScoped<IPay, PayMoney2Service>();
 

@@ -7,9 +7,14 @@ using System.Data;
 
 namespace MyBlog.Services
 {
-    public class BlogService : ServicesBase, IBlogService
+    public class BlogService : IBlogService
     {
-        public BlogService(string ConnectionString) : base(ConnectionString) { }
+        protected IServicesBase _services;
+
+        public BlogService(IServicesBase services)
+        {
+            _services = services;
+        }
 
         /// <summary>
         /// 取得資料表清單
@@ -17,8 +22,8 @@ namespace MyBlog.Services
         public List<Blog> GetBlogs()
         {
             var sql = @"select * from Blogs";
-            
-            return Query<Blog>(sql);
+
+            return _services.Query<Blog>(sql);
         }
 
         /// <summary>
@@ -30,7 +35,7 @@ namespace MyBlog.Services
             var parameters = new DynamicParameters();
             parameters.Add("BlogId", BlogId, DbType.Int32);
 
-            return QueryFirstOrDefault<Blog>(sql, parameters);
+            return _services.QueryFirstOrDefault<Blog>(sql, parameters);
         }
 
         /// <summary>
@@ -47,7 +52,7 @@ namespace MyBlog.Services
             parameters.Add("Url", blog.Url, DbType.String);
             parameters.Add("Rating", blog.Rating, DbType.Int32);
 
-            return Execute(sql, parameters);
+            return _services.Execute(sql, parameters);
         }
 
         /// <summary>
@@ -67,13 +72,13 @@ namespace MyBlog.Services
             parameters.Add("Url", blog.Url, DbType.String);
             parameters.Add("Rating", blog.Rating, DbType.Int32);
 
-            return Execute(sql, parameters);
+            return _services.Execute(sql, parameters);
         }
 
         /// <summary>
         /// 刪除單筆資料
         /// </summary>
-        public int DeleteBlog(int index) 
+        public int DeleteBlog(int index)
         {
             var sql = @"Delete Blogs
                         where
@@ -82,7 +87,7 @@ namespace MyBlog.Services
             var parameters = new DynamicParameters();
             parameters.Add("BlogId", index, DbType.Int32);
 
-            return Execute(sql, parameters);
+            return _services.Execute(sql, parameters);
         }
     }
 }

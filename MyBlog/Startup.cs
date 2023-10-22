@@ -17,6 +17,7 @@ using System.Data;
 using Microsoft.Data.SqlClient;
 using MyBlog.Services.Interface;
 using MyBlog.Services;
+using MyBlog.Extensions;
 
 namespace MyBlog
 {
@@ -32,10 +33,11 @@ namespace MyBlog
         // DI Container
         public void ConfigureServices(IServiceCollection services)
         {
+            // DI 相關註冊群組移至擴充方法
+            services.AddConfig(Configuration)
+                    .AddRegisterDIConfig();
 
-            //services.AddSingleton<IBlogService, BlogService>();
-            services.AddSingleton<IPay, PayMoney1Service>();
-            services.AddSingleton<IPay, PayMoney2Service>();
+            //services.AddMemoryCache();
 
             services.AddScoped<IDbConnection, SqlConnection>(serviceProvider =>
             {
