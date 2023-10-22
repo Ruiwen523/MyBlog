@@ -50,6 +50,14 @@
    12. 大目標哪一些類型應當做分層就該分層，不單是在同一專案下的分層，還有切開成不同專案下分層
        1.  首要目標應當是: 高度可維護
        2.  先K書 Clean Code、Clean Architecture (還有一本C#的)
+   13. 實作JWT、登錄auth(Token)驗證的`Middleware`
+       -  Response出去前也可以用`[ActionFilter]`再檢查是否過期
+       -  但若這是純後端API則要注意 使用者的狀態管理是做在前端自行管理還是後端Session記憶體中
+   14. 閱讀並理解 「測試驅動開發（TDD）、DDD、CQRS架構理念」，於專案完成後實作並重構專案
+       - 文章中有句話說得很好；每個程式設計員都應該努力掌握編寫程式碼的基本能力
+       - 透過使用版本控制和頻繁提交，您可以確保將乾淨的程式碼實踐整合到開發過程中，防止程式碼庫惡化並促進開發人員之間的協作。
+       - https://medium.com/@nile.bits/clean-code-in-c-a-guide-to-writing-elegant-net-applications-db8698c8c731
+   15. 有多的時間把這個屬於Web且對目前有幫助的部份學完 IBM SkillsBuild 免費線上學習資源 Web Dev:  https://skillsbuild.org/zh-TW/adult-learners/explore-learning/web-developer
 
 > 但有一個大前提 全部都要從頭來過 從無到有 化為自己的經驗 所以到整個專案完成 要花很長時間去大量閱讀，因此一切不會搞得那麼多，會先將部落格「清單頁面/內容頁面」刻好，套版套好，我能自己撰寫Json透過後端API匯入或者Post上去 所需的後端+前端建設完成後再回頭添加這些東西。
 
