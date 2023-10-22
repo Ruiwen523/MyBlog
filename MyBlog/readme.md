@@ -316,27 +316,60 @@ MVC中的JSON編/解碼器
 ## 建立DI註冊器
 
 1. 一般註冊模式
-2. 批次註冊 
+2. 將相關註冊移至擴充方法註冊
 3. 套件Autofac 
+   - https://blog.darkthread.net/blog/autofac-notes-1/ 
 4. 檔名尾巴Service
 5. 屬性?
 
 ref:
-- https://www.stevejgordon.co.uk/aspnet-core-dependency-injection-what-is-the-iservicecollection 
-- https://www.youtube.com/watch?v=g5YixtianHo
+- 架構原則 這篇要讀: https://learn.microsoft.com/zh-tw/dotnet/architecture/modern-web-apps-azure/architectural-principles#dependency-inversion
+- 看看別人怎麼做: https://blog.darkthread.net/blog/aspnet-core-di-notes/
+- 看看別人怎麼做: https://mao-code.github.io/posts/3588979794/
+- 看看Steve Gordon的解釋: https://www.stevejgordon.co.uk/aspnet-core-dependency-injection-what-is-the-iservicecollection 
+- 有教學: https://www.youtube.com/watch?v=g5YixtianHo
+
+### 基本認識
+
+1. Singleton(單例): 
+   - **從程式開始到結束**，只建立一個實體，每次都重複利用同一個，直到程式被終止。  
+      - 優: 適合不做變動的配置檔註冊
+      - 缺: 不適合處理併發請求
+2. Scoped(作用域): 
+   - **每次的Request**，都建立一個新的實體，同一個Request下，重複利用同一個實體 (這裡的Request 常指Http Request)。  
+3. Transient(瞬態)  : 
+   - **每次注入時**，都建立一個新的實體。
+     - 優: 適合處理併發請求
+4. 從控制器存取應用程式或組態設定是常見的模式。 [ASP.NET Core 選項模式][1]中所述的選項模式是管理設定的慣用方法。 一般而言，不要將 IConfiguration 直接插入至控制器。 
+5. [SOLID][2] 原則參考1
+6. 
+
+[1]: <https://learn.microsoft.com/zh-tw/aspnet/core/mvc/controllers/dependency-injection?view=aspnetcore-3.1> "ASP.NET Core 中的選項模式"
+[2]: <https://oldmo860617.medium.com/%E6%9C%9D%E6%9B%B4%E5%A5%BD%E7%9A%84-ooc-%E8%B5%B0%E5%8E%BB-ioc-%E6%8E%A7%E5%88%B6%E5%8F%8D%E8%BD%89%E8%88%87-di-%E4%BE%9D%E8%B3%B4%E6%B3%A8%E5%85%A5-b7fed15ff058> "SOLID"
+
+> 有時間可多看看 `lock`方法與`volatile`。
+
+### 將相關註冊移至擴充方法註冊
+
+於專案開發中後期會有越來越多的`Service`會需要在`StartUp.cs`中注入，為了保持`StartUp.cs`的整潔會需要將大量服務註冊的`Function`移至擴充方法註冊
+
+於專案中Create Folder "Extensions" 目錄
+ref:  
+1. https://learn.microsoft.com/zh-tw/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-3.1
 
 
-### 在同一個interface注入多個Service並依照傳入不同的Type決定實作哪一個Service.cs
+### 在同一個interface注入多個Service並依照Request時傳入不同的Type決定實作哪一個Service.cs
+
+Startup.cs
 ``` C#
-
-// Startup.cs
 public void ConfigureServices(IServiceCollection services)
 {    
     services.AddSingleton<IPay, PayMoney1Service>();
     services.AddSingleton<IPay, PayMoney2Service>();
 }
-
-// PayMoney1Service.cs
+```
+PayMoney1Service.cs
+``` C#
 public class PayMoney1Service : IPay
 {
     public string Type => "I Am Money One.";
@@ -352,8 +385,10 @@ public class PayMoney1Service : IPay
         return obj;
     }
 }
+```
 
-// PayMoney2Service.cs
+PayMoney2Service.cs
+``` C#
 public class PayMoney2Service : IPay
 {
     public string Type => "I Am Money Two.";
@@ -368,8 +403,10 @@ public class PayMoney2Service : IPay
         return obj;
     }
 }
+```
 
-// PayController.cs
+PayController.cs
+``` C#
 protected IEnumerable<IPay> _pay { get; set; }
 
 public PayController(IEnumerable<IPay> pay) 
@@ -396,7 +433,6 @@ public ActionResult<ResponseBox<PayMoney>> PayMoney(string PayMode)
 ```
 成功依照所傳入Type取回資料
 ``` Json
-// 第一種Type
 {
   "header": {
     "message": "成功拿到資料拉",
@@ -407,8 +443,9 @@ public ActionResult<ResponseBox<PayMoney>> PayMoney(string PayMode)
     "payOwner": "One"
   }
 }
-
-// 第二種Type
+```
+第二種Type
+``` Json
 {
   "header": {
     "message": "成功拿到資料拉",
@@ -420,6 +457,23 @@ public ActionResult<ResponseBox<PayMoney>> PayMoney(string PayMode)
   }
 }
 ```
+
+### 避免實例化相依性注入
+
+待閱文章:  
+1. Resolving instances with ASP.NET Core DI from within ConfigureServices
+
+ref:  
+- https://stackoverflow.com/questions/32459670/resolving-instances-with-asp-net-core-di-from-within-configureservices
+
+
+Lading... 
+
+
+
+## 壓力測試 (待研究)
+ref: 
+- https://blog.twjoin.com/%E6%8B%93%E5%B1%95%E6%8A%80%E8%83%BD%E6%A8%B9%E4%B9%8B%E5%A3%93%E5%8A%9B%E6%B8%AC%E8%A9%A6-stress-test-%E7%AF%87-59b3d184b804
 
 
 Lading... 

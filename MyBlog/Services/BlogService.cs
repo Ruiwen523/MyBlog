@@ -1,11 +1,13 @@
 ﻿using Dapper;
 using MyBlog.Models;
+using MyBlog.Models.Common;
+using MyBlog.Services.Interface;
 using System.Collections.Generic;
 using System.Data;
 
 namespace MyBlog.Services
 {
-    public class BlogService : ServicesBase
+    public class BlogService : ServicesBase, IBlogService
     {
         public BlogService(string ConnectionString) : base(ConnectionString) { }
 
