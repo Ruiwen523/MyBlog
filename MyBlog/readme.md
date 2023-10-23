@@ -407,6 +407,11 @@ public void ConfigureServices(IServiceCollection services)
 
 這邊要注意的是我使用的是類別名稱`Name.Contains("Service")`包含特定字串判斷，而非使用`Name.EndsWith("Service")`結尾判斷，所以要小心檔名命名問題。
 
+ref:
+1. 官方文檔1: https://learn.microsoft.com/zh-tw/dotnet/api/system.reflection.assembly?view=net-7.0
+2. 官方文檔2: https://learn.microsoft.com/zh-tw/dotnet/api/system.reflection.assembly.getexecutingassembly?view=net-7.0
+3. 以及其他網路上教學
+
 ``` C#
 public static IServiceCollection AddBatchRegisterDIConfig(this IServiceCollection services)
 {
