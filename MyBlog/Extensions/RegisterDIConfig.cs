@@ -4,7 +4,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using MyBlog.Models.Common;
 using MyBlog.Services;
 using MyBlog.Services.Interface;
-
+using System;
+using System.Linq;
+using System.Reflection;
 
 namespace MyBlog.Extensions
 {
@@ -31,5 +33,20 @@ namespace MyBlog.Extensions
 
             return services;
         }
+        
+        public static IServiceCollection AddBatchRegisterDIConfig(this IServiceCollection services)
+        {
+            var Types = Assembly.GetExecutingAssembly().GetTypes().ToList();
+            var Services = Types.Where(m => m.IsPublic && m.IsClass && !m.IsAbstract && m.Name.Contains("Service"));
+            
+            foreach (var Service in Services) 
+            {
+                Type IService = Service.GetInterfaces().FirstOrDefault();
+                services.AddScoped(IService, Service);
+            }
+
+            return services;
+        }
+
     }
 }

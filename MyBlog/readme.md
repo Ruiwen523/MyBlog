@@ -403,6 +403,27 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
+### 使用批次註冊
+
+這邊要注意的是我使用的是類別名稱`Name.Contains("Service")`包含特定字串判斷，而非使用`Name.EndsWith("Service")`結尾判斷，所以要小心檔名命名問題。
+
+``` C#
+public static IServiceCollection AddBatchRegisterDIConfig(this IServiceCollection services)
+{
+    var Types = Assembly.GetExecutingAssembly().GetTypes().ToList();
+    var Services = Types.Where(m => m.IsPublic && m.IsClass && !m.IsAbstract && m.Name.Contains("Service"));
+    
+    foreach (var Service in Services) 
+    {
+        Type IService = Service.GetInterfaces().FirstOrDefault();
+        services.AddScoped(IService, Service);
+    }
+
+    return services;
+}
+```
+
+
 ### 在同一個interface注入多個Service並依照Request時傳入不同的Type決定實作哪一個Service.cs
 
 Startup.cs

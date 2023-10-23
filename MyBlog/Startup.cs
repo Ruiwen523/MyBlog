@@ -35,7 +35,7 @@ namespace MyBlog
         {
             // DI 相關註冊群組移至擴充方法
             services.AddConfig(Configuration)
-                    .AddRegisterDIConfig();
+                    .AddBatchRegisterDIConfig();
 
             //services.AddMemoryCache();
 
