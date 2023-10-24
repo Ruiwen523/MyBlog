@@ -12,5 +12,11 @@ namespace MyBlog.Common.Enums
             [Description("發送失敗拉")]
             Fail = 404
         }
+
+        public enum DbSource 
+        {
+            SQLServer,
+            DB2
+        }
     }
 }

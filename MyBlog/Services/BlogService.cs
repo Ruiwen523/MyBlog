@@ -4,6 +4,7 @@ using MyBlog.Models.Common;
 using MyBlog.Services.Interface;
 using System.Collections.Generic;
 using System.Data;
+using static MyBlog.Common.Enums.BlogEnum;
 
 namespace MyBlog.Services
 {
@@ -23,7 +24,7 @@ namespace MyBlog.Services
         {
             var sql = @"select * from Blogs";
 
-            return _services.Query<Blog>(sql);
+            return _services.Query<Blog>(sql, null, DbSource.SQLServer);
         }
 
         /// <summary>

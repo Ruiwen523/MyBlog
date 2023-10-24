@@ -555,6 +555,91 @@ ref:
 
 Lading... 
 
+
+## 加入IConfigService.cs
+透過它來讀取Appsetting.json以及其他ConnectionString，或者如郵件SMTP設定或特殊功能的規格屬性等。
+
+假使今天專案不僅連線一個資料庫且連線提供者也不同，則我們可以加入一個自訂介面服務再開一些屬性，加入`Enum` 用來判斷傳入SQL要使用什麼連線提供者，然後搭配`IDbConnection`，並修改底層實作出對不同資料庫連線進行CRUD動作。
+
+appsettings.json
+``` Json
+"ConnectionStrings": {
+  "BloggingContext": "Server=(localdb)\\mssqllocaldb; Database=Blog; Trusted_Connection=True; MultipleActiveResultSets=true",
+  "DB2": "Provider=OraOLEDB.DB2;Data Source=MyDB2DB;User Id=myUsername;Password=myPassword"
+},
+"AppSettings": {
+  "Author": "Ruiwen",
+  "WebSite": "https://github.com/Ruiwen523/MyBlog"
+}
+```
+ConfigService.cs
+```C# 
+public class ConfigService : IConfigService
+{
+    private readonly IConfiguration _configuration;
+    private readonly AppSettings _options;
+
+    public ConfigService(IConfiguration configuration,
+                          IOptions<AppSettings> options)
+    {
+        _configuration = configuration;
+        _options = options.Value;
+    }
+
+    public string SqlServerBlog { get => _configuration.GetConnectionString("BloggingContext"); }
+
+    public string DB2Blog { get => _configuration.GetConnectionString("DB2"); }
+
+    //public AppSettings appSettings { get => _configuration.GetValue<AppSettings>("AppSettings"); }
+
+    public AppSettings appSettings { get => _options; }
+}
+```
+
+DbSource.cs
+``` C#
+public enum DbSource 
+{
+    SQLServer,
+    DB2
+}
+```
+BlogService.cs
+``` C#
+/// <summary>
+/// 取得資料表清單
+/// </summary>
+public List<Blog> GetBlogs()
+{
+    var sql = @"select * from Blogs";
+
+    return _services.Query<Blog>(sql, null, DbSource.SQLServer);
+}
+```
+
+ServicesBase.cs
+``` C#
+IDbConnection ChoseDbSorce(DbSource dbSource) => 
+dbSource switch
+{
+    DbSource.SQLServer => new SqlConnection(_config.SqlServerBlog),
+    _ => new OleDbConnection(_config.DB2Blog)
+
+};
+
+/// <summary>
+/// 查詢清單資料
+/// </summary>
+public List<T> Query<T>(string sql, DynamicParameters dynamic = null, DbSource dbSource = DbSource.SQLServer)
+{
+    using (IDbConnection conn = ChoseDbSorce(dbSource))
+    {
+        return conn.Query<T>(sql, dynamic, null, true, 30, CommandType.Text).ToList();
+    }
+}
+```
+
+
 ## Appsetting.{environment}.json
 實作依據環境變數讀取不同的Server環境變數設定檔，最直接是Log Level與ConnectionString，一些API的設定也會不同等。
 

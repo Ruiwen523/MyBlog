@@ -1,14 +1,15 @@
 ﻿using Dapper;
 using System.Collections.Generic;
+using static MyBlog.Common.Enums.BlogEnum;
 
 namespace MyBlog.Services.Interface
 {
     public interface IServicesBase
     {
-        List<T> Query<T>(string sql, DynamicParameters dynamic = null);
+        public List<T> Query<T>(string sql, DynamicParameters dynamic = null, DbSource dbSource = DbSource.SQLServer);
 
-        T QueryFirstOrDefault<T>(string sql, DynamicParameters parameters);
+        public T QueryFirstOrDefault<T>(string sql, DynamicParameters parameters, DbSource dbSource = DbSource.SQLServer);
 
-        int Execute(string sql, DynamicParameters parameters);
+        public int Execute(string sql, DynamicParameters parameters, DbSource dbSource = DbSource.SQLServer);
     }
 }
