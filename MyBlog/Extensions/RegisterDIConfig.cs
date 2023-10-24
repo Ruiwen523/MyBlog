@@ -14,7 +14,7 @@ namespace MyBlog.Extensions
     {
         public static IServiceCollection AddConfig(this IServiceCollection services, IConfiguration config)
         {
-            services.Configure<AppSettingsOptions>(config.GetSection("AppSettings"));
+            services.Configure<AppSettings>(config.GetSection("AppSettings"));
 
             return services;
         }
