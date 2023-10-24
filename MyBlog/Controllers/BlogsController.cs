@@ -28,19 +28,22 @@ namespace MyBlog.Controllers
         private readonly IDbConnection _conn;
         private readonly ILogger<BlogsController> _logger;
         private readonly IBlogService _blogService;
-        private readonly AppSettingsOptions _options;
+        private readonly AppSettings _options;
+        private readonly IConfigService _config;
 
         public BlogsController(BloggingContext context,
                                IDbConnection dbConnection,
                                ILogger<BlogsController> logger,
                                IBlogService blogService,
-                               IOptions<AppSettingsOptions> options)
+                               IOptions<AppSettings> options,
+                               IConfigService configService)
         {
             _context = context;
             _conn = dbConnection;
             _logger = logger;
             _blogService = blogService;
             _options = options.Value;
+            _config = configService;
         }
         
         //[HttpGet(Name = nameof(GetTestBlog))]
@@ -62,6 +65,10 @@ namespace MyBlog.Controllers
             _logger.LogInformation("Hello, this is the BlogList!");
             _logger.LogInformation(_options.Author);
             _logger.LogInformation(_options.WebSite);
+            _logger.LogInformation(_config.DB2Blog);
+            _logger.LogInformation(_config.SqlServerBlog);
+            _logger.LogInformation(_config.appSettings.Author);
+            _logger.LogInformation(_config.appSettings.WebSite);
 
             var blogs = _blogService.GetBlogs();
 
