@@ -69,6 +69,8 @@ namespace MyBlog.Controllers
             _logger.LogInformation(_config.SqlServerBlog);
             _logger.LogInformation(_config.appSettings.Author);
             _logger.LogInformation(_config.appSettings.WebSite);
+            _logger.LogInformation(_options.Environment);
+            _logger.LogInformation(_config.appSettings.Environment);
 
             var blogs = _blogService.GetBlogs();
 

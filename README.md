@@ -58,6 +58,7 @@
        - 透過使用版本控制和頻繁提交，您可以確保將乾淨的程式碼實踐整合到開發過程中，防止程式碼庫惡化並促進開發人員之間的協作。
        - https://medium.com/@nile.bits/clean-code-in-c-a-guide-to-writing-elegant-net-applications-db8698c8c731
    15. 有多的時間把這個屬於Web且對目前有幫助的部份學完 IBM SkillsBuild 免費線上學習資源 Web Dev:  https://skillsbuild.org/zh-TW/adult-learners/explore-learning/web-developer
+   16. 微軟也有一些訓練 https://learn.microsoft.com/zh-tw/training/browse/
 
 > 但有一個大前提 全部都要從頭來過 從無到有 化為自己的經驗 所以到整個專案完成 要花很長時間去大量閱讀，因此一切不會搞得那麼多，會先將部落格「清單頁面/內容頁面」刻好，套版套好，我能自己撰寫Json透過後端API匯入或者Post上去 所需的後端+前端建設完成後再回頭添加這些東西。
 

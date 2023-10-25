@@ -540,22 +540,6 @@ ref:
 
 > 其餘後面再來研究
 
-## 壓力測試 (待研究)
-
-建好之後來玩  
-
-ref: 
-- https://blog.twjoin.com/%E6%8B%93%E5%B1%95%E6%8A%80%E8%83%BD%E6%A8%B9%E4%B9%8B%E5%A3%93%E5%8A%9B%E6%B8%AC%E8%A9%A6-stress-test-%E7%AF%87-59b3d184b804
-
-
-## Middleware 中介軟體
-ref:
-  1. https://learn.microsoft.com/zh-tw/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.1
-
-
-Lading... 
-
-
 ## 加入IConfigService.cs
 透過它來讀取Appsetting.json以及其他ConnectionString，或者如郵件SMTP設定或特殊功能的規格屬性等。
 
@@ -639,23 +623,48 @@ public List<T> Query<T>(string sql, DynamicParameters dynamic = null, DbSource d
 }
 ```
 
-
 ## Appsetting.{environment}.json
-實作依據環境變數讀取不同的Server環境變數設定檔，最直接是Log Level與ConnectionString，一些API的設定也會不同等。
 
-Lading... 
+.NET Core 會依據`ASPNETCORE_ENVIRONMENT`設定的環境變數不同，而讀取不同的Server環境變數設定檔，最直接是Log Level與ConnectionString，一些API的設定也會不同等。
+ref:
+1. 黑暗大這篇應該就夠了: https://blog.darkthread.net/blog/appsetting-by-environment/
+2. https://marcus116.blogspot.com/2019/04/netcore-aspnet-core-appsettingsjson.html
+3. https://stackoverflow.com/questions/52085806/what-is-the-difference-between-iwebhost-webhostbuilder-buildwebhost
+4. https://learn.microsoft.com/zh-tw/aspnet/core/fundamentals/configuration/?view=aspnetcore-3.1#providers
 
+## 加入CORS 跨來源資源共用
+ref:
+1. MDN文件: https://developer.mozilla.org/zh-TW/docs/Web/HTTP/CORS
+2. 官方文件: https://learn.microsoft.com/zh-tw/aspnet/core/security/cors?view=aspnetcore-3.1
 
-## ActionFilter 應用實作
-1. 如果今天有人知道 Get/Post等 路由除了經過Token等有效驗證外，應還要檢查是否有該Controller/Action權限。
-2. 假使今天有個控制器都是在做查詢類的情境，那可能會有完全共用的輸出(Component View)，其所需的Response Model物件肯定也一樣，此時就可以使用，但這總感覺不太對[Filter]味，待研究`[ActionFilter]`實務上究竟是如還運用。
+Lading...
 
-Lading... 
+## JWT 身分驗證
+
+Lading...
+
+## 非同步觀念
+
+Lading...
 
 ## 自定義擴充[ValidationAttribute] 應用實作
 
 1. 可重用的Regex驗證 比如整數+小數位數 對應DB`decimal(8, 4)`長度 
 2. 字串的英數字編碼、加上Regex與相關邏輯去把非中文擷取出來比對後，僅將 屬性成員中非中文部分進行編碼
+
+Lading... 
+
+## ActionFilter 應用實作
+1. 如果今天有人知道 Get/Post等 路由除了經過Token等有效驗證外，應還要檢查是否有該Controller/Action權限。
+2. 假使今天有個控制器都是在做查詢類的情境，那可能會有完全共用的輸出(Component View)，其所需的Response Model物件肯定也一樣，此時就可以使用，但這總感覺不太對[Filter]味，待研究`[ActionFilter]`實務上究竟是如還運用。
+
+> 註冊Mvc.Add(Factory)
+
+Lading... 
+
+## Middleware 中介軟體
+ref:
+  1. https://learn.microsoft.com/zh-tw/aspnet/core/fundamentals/middleware/?view=aspnetcore-3.1
 
 Lading... 
 
@@ -671,3 +680,17 @@ Lading...
 > 得要找一些三方套件或是人家怎麼去驗證自己寫的程式效能好不好的方式
 
 Lading... 
+
+## 快取功能
+ref: 
+1. https://learn.microsoft.com/zh-tw/aspnet/core/performance/caching/memory?view=aspnetcore-3.1
+
+## 壓力測試 (待研究)
+
+建好之後來玩  
+
+ref: 
+- https://learn.microsoft.com/zh-tw/aspnet/core/test/load-tests?view=aspnetcore-3.1
+- https://blog.twjoin.com/%E6%8B%93%E5%B1%95%E6%8A%80%E8%83%BD%E6%A8%B9%E4%B9%8B%E5%A3%93%E5%8A%9B%E6%B8%AC%E8%A9%A6-stress-test-%E7%AF%87-59b3d184b804
+
+
