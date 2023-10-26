@@ -25,21 +25,21 @@ namespace MyBlog.Controllers
     public class BlogsController : BaseController
     {
         private readonly BloggingContext _context;
-        private readonly IDbConnection _conn;
+        //private readonly IDbConnection _conn;
         private readonly ILogger<BlogsController> _logger;
         private readonly IBlogService _blogService;
         private readonly AppSettings _options;
         private readonly IConfigService _config;
 
         public BlogsController(BloggingContext context,
-                               IDbConnection dbConnection,
+                               //IDbConnection dbConnection,
                                ILogger<BlogsController> logger,
                                IBlogService blogService,
                                IOptions<AppSettings> options,
                                IConfigService configService)
         {
             _context = context;
-            _conn = dbConnection;
+            //_conn = dbConnection;
             _logger = logger;
             _blogService = blogService;
             _options = options.Value;

@@ -1,23 +1,14 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using MyBlog.Data;
-using System.Data;
-using Microsoft.Data.SqlClient;
-using MyBlog.Services.Interface;
-using MyBlog.Services;
 using MyBlog.Extensions;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace MyBlog
 {
@@ -30,7 +21,7 @@ namespace MyBlog
 
         public IConfiguration Configuration { get; }
 
-        // DI Container
+        // 註冊DI Container
         public void ConfigureServices(IServiceCollection services)
         {
             // DI 相關註冊群組移至擴充方法
@@ -39,17 +30,20 @@ namespace MyBlog
 
             //services.AddMemoryCache();
 
-            services.AddScoped<IDbConnection, SqlConnection>(serviceProvider =>
-            {
-                //指派連線字串
-                SqlConnection conn = new SqlConnection();
-                conn.ConnectionString = Configuration.GetConnectionString("BloggingContext");
-                return conn;
-            });
+            #region 已移至IConfigService註冊DI取用
+            //services.AddScoped<IDbConnection, SqlConnection>(serviceProvider =>
+            //{
+            //    //指派連線字串
+            //    SqlConnection conn = new SqlConnection();
+            //    conn.ConnectionString = Configuration.GetConnectionString("BloggingContext");
+            //    return conn;
+            //});
+            #endregion
+
+            services.AddControllers().AddNewtonsoftJson();
 
 
-            services.AddControllers();
-
+            #region Swagger服務
             services.AddSwaggerGen(c =>
             {
                 //c.IgnoreObsoleteProperties();
@@ -76,13 +70,23 @@ namespace MyBlog
                 c.SwaggerDoc("v2", new OpenApiInfo { Title = "API Document", Version = "v2" });
             });
 
-            //services.AddSwaggerGenNewtonsoftSupport(); // Swashbuckle.AspNetCore.Newtonsoft
+            services.AddSwaggerGenNewtonsoftSupport();
+
+
+
+            #endregion
+
+            #region 使用 cookie 驗證 Identity
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                    .AddCookie();
+            #endregion
+
 
             services.AddDbContext<BloggingContext>(
                 options => options.UseSqlServer("name=ConnectionStrings:BloggingContext"));
         }
 
-        // Middleware
+        // 使用Middleware
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -90,12 +94,14 @@ namespace MyBlog
                 app.UseDeveloperExceptionPage();
             }
 
+            #region 使用Swagger&UI
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("v1/swagger.json", "My API V1");
             });
 
+            
             //app.UseSwagger(c =>
             //{
             //    c.RouteTemplate = "/api/swagger/{documentName}/swagger.json";
@@ -107,11 +113,15 @@ namespace MyBlog
             //    c.SwaggerEndpoint("v2/swagger.json", "My API V2");
             //    c.RoutePrefix = "api/swagger";
             //});
+            #endregion
 
             app.UseHttpsRedirection();
 
             app.UseRouting();
 
+            // 使用身分驗證
+            app.UseAuthentication();
+            // 使用身分授權
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

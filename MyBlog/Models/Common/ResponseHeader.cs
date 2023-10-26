@@ -2,9 +2,9 @@
 
 namespace MyBlog.Models.Common
 {
-    public class Header
+    public class ResponseHeader
     {
         public string Message { get; set; }
-        public StateCode StateCode { get; set; }
+        public string StateCode { get; set; }
     }
 }

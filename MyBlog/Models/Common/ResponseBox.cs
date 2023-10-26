@@ -1,4 +1,5 @@
 ﻿using MyBlog.Common.EnumExtenstion;
+using System;
 using static MyBlog.Common.Enums.BlogEnum;
 
 namespace MyBlog.Models.Common
@@ -7,12 +8,12 @@ namespace MyBlog.Models.Common
     {
         public ResponseBox(T body, StateCode code = StateCode.OK)
         {
-            Header.StateCode = code;
+            Header.StateCode = Enum.GetName(typeof(StateCode), (int) code);
             Header.Message = code.GetDescription();
             Body = body;
         }
 
-        public Header Header { get; set; } = new Header();
+        public ResponseHeader Header { get; set; } = new ResponseHeader();
 
         public T Body { get; set; }
     }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MyBlog.Models;
+using MyBlog.Models.Auth;
 using System.Collections.Generic;
 
 namespace MyBlog.Data
@@ -13,5 +14,6 @@ namespace MyBlog.Data
 
         public DbSet<Blog> Blogs { get; set; }
         public DbSet<Post> Posts { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 }

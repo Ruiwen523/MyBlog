@@ -12,13 +12,13 @@ namespace MyBlog.Services
 {
     public class ServicesBase : IServicesBase
     {
-        private string _dbConnectionString;
+        //private string _dbConnectionString;
         private protected IConfigService _config;
 
-        public ServicesBase(IDbConnection _conn,
+        public ServicesBase(//IDbConnection _conn,
                             IConfigService configService)
         {
-            _dbConnectionString = _conn.ConnectionString;
+            //_dbConnectionString = _conn.ConnectionString;
             _config = configService;
         }
 

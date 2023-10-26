@@ -18,6 +18,25 @@ namespace MyBlog.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+            modelBuilder.Entity("MyBlog.Models.Auth.User", b =>
+                {
+                    b.Property<string>("Account")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Password")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Role")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Account");
+
+                    b.ToTable("Users");
+                });
+
             modelBuilder.Entity("MyBlog.Models.Blog", b =>
                 {
                     b.Property<int>("BlogId")

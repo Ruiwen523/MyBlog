@@ -10,7 +10,7 @@ ref:
 T: Startup.cs  
 M: ConfigureServices()  
 	add: services.AddSwaggerGen(); 以及定義 c.SwaggerDoc();swagger文件  
-	add: 安裝Swashbuckle.AspNetCore.Newtonsoft //services.AddSwaggerGenNewtonsoftSupport(); //   
+	add: 安裝Swashbuckle.AspNetCore.Newtonsoft //services.AddSwaggerGenNewtonsoftSupport();   
 
 啟用瀏覽器並查看(預設使用以下url)  
 /swagger/{documentName}/swagger.json => "v1"  
@@ -23,7 +23,7 @@ Model DataAnnotations
 
 
 
-## Error Msg :
+## Error Exception :
 
 - Failed to load API definition.
 	- 解決方法 
@@ -35,6 +35,9 @@ Model DataAnnotations
     	2. [HttpGet("ActionName")]
     	3. [HttpPatch("GetTestBlog/")]
     	4. [Route("api/[controller]/[action]")]
+- Deserialization of reference types without parameterless constructor is not supported. Type 
+  - 解決方法
+    - `Startup.cs` 加入 `services.AddControllers().AddNewtonsoftJson();`
 
 # 安裝 EFCore SqlServer & Tools
 安裝 dotnet-ef 全域工具 (.NET CLI Global Tool)  
@@ -639,7 +642,55 @@ ref:
 
 Lading...
 
-## JWT 身分驗證
+## 身分驗證篇
+ref:
+1. 官方文件概觀: https://learn.microsoft.com/zh-tw/aspnet/core/security/?view=aspnetcore-3.1
+2. ASP.NET Core 上的 Identity 簡介: https://learn.microsoft.com/zh-tw/aspnet/core/security/authentication/identity?view=aspnetcore-3.1&tabs=visual-studio
+3. Cookie: https://learn.microsoft.com/zh-tw/aspnet/core/security/authentication/cookie?view=aspnetcore-3.1
+4. 這邊有人家的實作: https://www.youtube.com/watch?v=7vhKul20pbs&list=PLneJIGUTIItsqHp_8AbKWb7gyWDZ6pQyz&index=66&t=49s
+5. 認識 OAuth 2.0 : https://medium.com/%E9%BA%A5%E5%85%8B%E7%9A%84%E5%8D%8A%E8%B7%AF%E5%87%BA%E5%AE%B6%E7%AD%86%E8%A8%98/%E7%AD%86%E8%A8%98-%E8%AA%8D%E8%AD%98-oauth-2-0-%E4%B8%80%E6%AC%A1%E4%BA%86%E8%A7%A3%E5%90%84%E8%A7%92%E8%89%B2-%E5%90%84%E9%A1%9E%E5%9E%8B%E6%B5%81%E7%A8%8B%E7%9A%84%E5%B7%AE%E7%95%B0-c42da83a6015
+6. 認識 Token-based Authentication: https://vicxu.medium.com/%E6%B7%BA%E8%AB%87-authentication-%E4%B8%AD%E9%9B%86-token-based-authentication-90139fbcb897
+7. 認識 Token Authentication : https://ms0680146.medium.com/jwt-introduction-b81cb99c93db 
+8. 保哥JWT: https://blog.miniasp.com/post/2022/02/13/How-to-use-JWT-token-based-auth-in-aspnet-core-60
+
+### Cookie驗證
+1. 在`ConfigureServices`方法中，使用`AddAuthentication`和`AddCookie`方法來建立驗證中介軟體服務：
+2. 在`Configure`方法中，使用`UseAuthentication`和`UseAuthorization`方法來使用身分驗證與授權中介軟體服務：
+
+Startup.cs  
+```C#
+using Microsoft.AspNetCore.Authentication.Cookies;
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        #region 建立Cookie驗證Identity
+        services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie();
+        #endregion
+    }
+
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        // 使用身分驗證
+        app.UseAuthentication();
+        // 使用身分授權
+        app.UseAuthorization();
+        // 必須添加在使用端點之前
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+        });
+    }
+}
+```
+Startup.cs  
+```C#
+      
+```
+
+
 
 Lading...
 
@@ -681,7 +732,7 @@ Lading...
 
 Lading... 
 
-## 快取功能
+## 快取功能 (待研究)
 ref: 
 1. https://learn.microsoft.com/zh-tw/aspnet/core/performance/caching/memory?view=aspnetcore-3.1
 
@@ -694,3 +745,12 @@ ref:
 - https://blog.twjoin.com/%E6%8B%93%E5%B1%95%E6%8A%80%E8%83%BD%E6%A8%B9%E4%B9%8B%E5%A3%93%E5%8A%9B%E6%B8%AC%E8%A9%A6-stress-test-%E7%AF%87-59b3d184b804
 
 
+## DDD、TDD、CQRS (待研究)
+
+## 單元xUnit測試 (待研究)
+
+
+## 其餘前端相關補充
+
+未來移至CSS學習篇:
+1. CSS相關: https://www.youtube.com/watch?v=s3ifqDB3dLc
