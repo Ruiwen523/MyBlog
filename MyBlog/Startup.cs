@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using MyBlog.Data;
 using MyBlog.Extensions;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 namespace MyBlog
 {
@@ -78,7 +80,17 @@ namespace MyBlog
 
             #region 使用 cookie 驗證 Identity
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                    .AddCookie();
+                    .AddCookie(option =>
+                    {
+                        option.ExpireTimeSpan = TimeSpan.FromMinutes(20);
+                        option.LoginPath = new PathString("/api/Login/NoLogin"); // 未登入時導頁
+                    });
+
+            services.AddMvc(options =>
+            {
+                // 添加全域Filter驗證
+                options.Filters.Add(new AuthorizeFilter());
+            });
             #endregion
 
 
@@ -101,7 +113,7 @@ namespace MyBlog
                 c.SwaggerEndpoint("v1/swagger.json", "My API V1");
             });
 
-            
+
             //app.UseSwagger(c =>
             //{
             //    c.RouteTemplate = "/api/swagger/{documentName}/swagger.json";

@@ -15,12 +15,12 @@ using MyBlog.Models.Common;
 using static MyBlog.Common.Enums.BlogEnum;
 using MyBlog.Services.Interface;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MyBlog.Controllers
 {
     
     [Route("api/[controller]")]
-    //[Route("api/[controller]/[action]")]
     [ApiController]
     public class BlogsController : BaseController
     {

@@ -3,9 +3,10 @@ ex: 搜尋"Starup.cs"然後輸入"ConfigureServices"
 
 # 安裝 Swagger套件
 ref:   
- a. https://github.com/domaindrivendev/Swashbuckle.AspNetCore  
- b. https://dotblogs.com.tw/xinyikao/2021/07/04/183326  
- c. https://dotblogs.com.tw/yc421206/2022/03/12/via_swashbuckle_write_swagger_doc_in_asp_net_core_web_api  
+ 1. https://github.com/domaindrivendev/Swashbuckle.AspNetCore  
+ 2. https://dotblogs.com.tw/xinyikao/2021/07/04/183326  
+ 3. https://dotblogs.com.tw/yc421206/2022/03/12/via_swashbuckle_write_swagger_doc_in_asp_net_core_web_api  
+ 4. https://github.com/domaindrivendev/Swashbuckle.AspNetCore/issues/1422
 
 T: Startup.cs  
 M: ConfigureServices()  
@@ -667,12 +668,18 @@ public class Startup
     {
         #region 建立Cookie驗證Identity
         services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie();
+                .AddCookie(option => 
+                {
+                    option.ExpireTimeSpan = TimeSpan.FromMinutes(20); // 過期時間
+                    option.LoginPath = new PathString("/api/Login/NoLogin"); // 未登入時導頁
+                });
         #endregion
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
+        ...
+
         // 使用身分驗證
         app.UseAuthentication();
         // 使用身分授權
@@ -685,12 +692,137 @@ public class Startup
     }
 }
 ```
-Startup.cs  
+
+3. 於`LoginController`新增`Login`、`Logout`、`NoLogin`、`NeedLogin`等Action動作方法
+4. 並於驗證成功後 宣告`ClaimsIdentity`物件設定後，指派給`HttpContext.SignInAsync(參數1, 2...)`進行登入動作
+5. 驗證相關屬性設定可於`Startup.cs`中的`AddCookie(option => { option...});`內進行設定，否則會以`AuthenticationProperties`類別設定取代`Startup`設定
+6. 於想要進行驗證的相關`Action`或`Controller`層級加上`[Authorize]`標籤，並引入命名空間 `Microsoft.AspNetCore.Authorization;` 
+
+LoginController.cs
 ```C#
-      
+[HttpPost]
+public async Task<ActionResult<ResponseBox<Empty>>> LoginAsync(RequestBox<LoginUser> userData)
+{
+    var user = _dbContext.Users.AsNoTracking()
+                                .ToListAsync().Result
+                                .SingleOrDefault(m => m.Account.Equals(userData.Body.UserId) && m.Password.Equals(userData.Body.Mima));
+    if (user == null)
+    {
+        return Content("帳號密碼錯誤");
+    }
+    else 
+    {
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, user.Account),
+            new Claim("FullName", user.Name),
+            new Claim(ClaimTypes.Role, "Administrator"),
+            //new Claim("LastChanged", {Database Value})
+        };
+
+        var claimsIdentity = new ClaimsIdentity(
+            claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+        // 驗證相關屬性設定
+        // var authProperties = new AuthenticationProperties
+        // {
+        //     允許刷新身份驗證會話(Session)。
+        //     AllowRefresh = true,
+        //     身份驗證票證過期的時間。 此處設定的值會覆寫使用 AddCookie 設定的 CookieAuthenticationOptions 的 ExpireTimeSpan 選項。
+        //     ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(20),
+        //     身份驗證會話是否在多個請求中持續存在。 與 cookie 一起使用時，控制 cookie 的生命週期是絕對的（與身分驗證票證的生命週期相符）還是基於會話。
+        //     IsPersistent = true,
+        //     核發身分驗證票證的時間
+        //     IssuedUtc = DateTimeOffset.UtcNow.AddMinutes(10),
+        //     用作HTTP的完整路徑重定向轉址
+        //     RedirectUri = "http://www.google.com.tw/"
+        // };
+
+        // SignInAsync 會建立加密的 cookie ，並將它新增至目前的回應。
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+        // await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
+    }
+
+    return Done<Empty>(null, StateCode.OK);
+}
+
+[HttpPost]
+public async Task<ActionResult<ResponseBox<Empty>>> Logout()
+{
+    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+    return Done<Empty>(null, StateCode.OK);
+}
+
+
+[HttpGet]
+public string NoLogin()
+{
+    return "未登入";
+}
+
+[Authorize]
+[HttpGet]
+public string NeedLogin()
+{
+    return "登入成功";
+}
+```
+
+7. 若全部都需要驗證則至`Startup.cs`中添加`Mvc.Filter`，並於`Login`的`Action`上添加`[AllowAnonymous]`允許匿名登入，表示該動作方法不需驗證。
+
+Startup.cs
+``` C#
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+        .AddCookie(option =>
+        {
+            option.ExpireTimeSpan = TimeSpan.FromMinutes(20);
+            option.LoginPath = new PathString("/api/Login/NoLogin"); // 未登入時導頁
+        });
+
+    services.AddMvc(options =>
+    {
+        // 添加全域Filter驗證
+        options.Filters.Add(new AuthorizeFilter());
+    });
+}
+```
+
+LoginController.cs
+``` C#
+    [Route("api/[controller]/[action]")]
+    [ApiController]
+    [Authorize]
+    public class LoginController : BaseController
+    {
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<ActionResult<ResponseBox<Empty>>> LoginAsync(RequestBox<LoginUser> userData)
+        {
+            var user = _dbContext.Users.AsNoTracking()
+                                       .ToListAsync().Result
+                                       .SingleOrDefault(m => m.Account.Equals(userData.Body.UserId) && m.Password.Equals(userData.Body.Mima));
+            if (user == null)
+            {
+                return Content("帳號密碼錯誤");
+            }
+            else 
+            {
+              ...驗證方法放在這
+            }
+
+            return Done<Empty>(null, StateCode.OK);
+        }
+    }
 ```
 
 
+> IsPersistent = true, // 要實測一下該屬性是否為，瀏覽器全部關閉，而只關閉索引頁籤也不會執行瀏覽器關閉事件(登出)。  
+> 後續有空可嘗試複寫其驗證方法[參考官方文檔 覆寫CookieAuthenticationEvents][3]
+
+[3]: https://learn.microsoft.com/zh-tw/aspnet/core/security/authentication/cookie?view=aspnetcore-3.1
 
 Lading...
 
@@ -709,7 +841,11 @@ Lading...
 1. 如果今天有人知道 Get/Post等 路由除了經過Token等有效驗證外，應還要檢查是否有該Controller/Action權限。
 2. 假使今天有個控制器都是在做查詢類的情境，那可能會有完全共用的輸出(Component View)，其所需的Response Model物件肯定也一樣，此時就可以使用，但這總感覺不太對[Filter]味，待研究`[ActionFilter]`實務上究竟是如還運用。
 
-> 註冊Mvc.Add(Factory)
+> 註冊全域Filter Mvc.Add(Factory)  
+> 可嘗試複寫其驗證方法 `CookieAuthenticationEvents`
+
+
+
 
 Lading... 
 

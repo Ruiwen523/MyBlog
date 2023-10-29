@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,8 +17,9 @@ using static MyBlog.Common.Enums.BlogEnum;
 
 namespace MyBlog.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
+    [Authorize]
     public class LoginController : BaseController
     {
         private protected IConfigService _configService;
@@ -29,6 +31,7 @@ namespace MyBlog.Controllers
             _dbContext = dbContext;
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public async Task<ActionResult<ResponseBox<Empty>>> LoginAsync(RequestBox<LoginUser> userData)
         {
@@ -47,6 +50,7 @@ namespace MyBlog.Controllers
                     new Claim(ClaimTypes.Name, user.Account),
                     new Claim("FullName", user.Name),
                     new Claim(ClaimTypes.Role, "Administrator"),
+                    //new Claim("LastChanged", {Database Value})
                 };
 
                 var claimsIdentity = new ClaimsIdentity(
@@ -54,26 +58,49 @@ namespace MyBlog.Controllers
 
                 var authProperties = new AuthenticationProperties
                 {
+                    IsPersistent = true, // 要實測一下該屬性是否為，瀏覽器全部關閉，而只關閉索引頁籤也不會執行瀏覽器關閉事件(登出)。
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(20)
+
                     // 允許刷新身份驗證會話(Session)。
-                    AllowRefresh = true,
+                    //AllowRefresh = true,
                     // 身份驗證票證過期的時間。 此處設定的值會覆寫使用 AddCookie 設定的 CookieAuthenticationOptions 的 ExpireTimeSpan 選項。
-                    ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(10),
+                    //ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(20),
                     // 身份驗證會話是否在多個請求中持續存在。 與 cookie 一起使用時，控制 cookie 的生命週期是絕對的（與身分驗證票證的生命週期相符）還是基於會話。
-                    IsPersistent = true,
+                    //IsPersistent = true,
                     // 核發身分驗證票證的時間
-                    IssuedUtc = DateTimeOffset.UtcNow.AddMinutes(10),
+                    //IssuedUtc = DateTimeOffset.UtcNow.AddMinutes(10),
                     // 用作HTTP的完整路徑重定向轉址
-                    RedirectUri = "http://www.google.com.tw/"
+                    //RedirectUri = "http://www.google.com.tw/"
                 };
 
                 // SignInAsync 會建立加密的 cookie ，並將它新增至目前的回應。
-                await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(claimsIdentity),
-                    authProperties);
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
             }
 
             return Done<Empty>(null, StateCode.OK);
         }
+
+        [HttpPost]
+        public async Task<ActionResult<ResponseBox<Empty>>> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            return Done<Empty>(null, StateCode.OK);
+        }
+
+
+        [HttpGet]
+        public string NoLogin()
+        {
+            return "未登入";
+        }
+
+        [Authorize]
+        [HttpGet]
+        public string NeedLogin()
+        {
+            return "登入成功";
+        }
+
     }
 }
