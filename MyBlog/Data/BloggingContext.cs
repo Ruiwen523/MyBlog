@@ -15,5 +15,8 @@ namespace MyBlog.Data
         public DbSet<Blog> Blogs { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<RoleClass> RoleClass { get; set; }
+
+        public DbSet<RoleRlAccount> roleRlAccounts { get; set; }
     }
 }

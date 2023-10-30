@@ -695,7 +695,7 @@ public class Startup
 
 3. 於`LoginController`新增`Login`、`Logout`、`NoLogin`、`NeedLogin`等Action動作方法
 4. 並於驗證成功後 宣告`ClaimsIdentity`物件設定後，指派給`HttpContext.SignInAsync(參數1, 2...)`進行登入動作
-5. 驗證相關屬性設定可於`Startup.cs`中的`AddCookie(option => { option...});`內進行設定，否則會以`AuthenticationProperties`類別設定取代`Startup`設定
+5. 驗證相關屬性設定可於`Startup.cs`中的`AddCookie(option => { option...});`內進行全域設定，否則會以`AuthenticationProperties`類別相同設定取代`Startup`設定，例如使用SSO登入過期時間15分鐘，使用系統登入20分鐘。
 6. 於想要進行驗證的相關`Action`或`Controller`層級加上`[Authorize]`標籤，並引入命名空間 `Microsoft.AspNetCore.Authorization;` 
 
 LoginController.cs
@@ -782,9 +782,9 @@ public void ConfigureServices(IServiceCollection services)
             option.LoginPath = new PathString("/api/Login/NoLogin"); // 未登入時導頁
         });
 
+    // 添加全域Filter驗證
     services.AddMvc(options =>
     {
-        // 添加全域Filter驗證
         options.Filters.Add(new AuthorizeFilter());
     });
 }

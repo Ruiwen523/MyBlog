@@ -6,11 +6,20 @@ namespace MyBlog.Common.Enums
     {
         public enum StateCode 
         {
-            [Description("成功拿到資料拉")]
-            OK = 200,
+            [Description("成功")]
+            OK,
 
-            [Description("發送失敗拉")]
-            Fail = 404
+            [Description("失敗")]
+            Fail,
+
+            [Description("登入成功")]
+            Login,
+
+            [Description("登出成功")]
+            Logout,
+
+            [Description("操作無權限")]
+            NoAccess,
         }
 
         public enum DbSource 

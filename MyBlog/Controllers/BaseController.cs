@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using MyBlog.Models.Common;
 using static MyBlog.Common.Enums.BlogEnum;
 

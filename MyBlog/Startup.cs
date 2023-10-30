@@ -84,14 +84,15 @@ namespace MyBlog
                     {
                         option.ExpireTimeSpan = TimeSpan.FromMinutes(20);
                         option.LoginPath = new PathString("/api/Login/NoLogin"); // 未登入時導頁
+                        option.AccessDeniedPath = new PathString("/api/Login/NoAccess"); // 登入但無權限時導頁
                     });
+            #endregion
 
+            // 添加全域Filter驗證
             services.AddMvc(options =>
             {
-                // 添加全域Filter驗證
                 options.Filters.Add(new AuthorizeFilter());
             });
-            #endregion
 
 
             services.AddDbContext<BloggingContext>(

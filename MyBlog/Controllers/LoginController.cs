@@ -19,13 +19,12 @@ namespace MyBlog.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [Authorize]
     public class LoginController : BaseController
     {
         private protected IConfigService _configService;
         private protected BloggingContext _dbContext;
         public LoginController(IConfigService configService,
-                               BloggingContext dbContext) 
+                               BloggingContext dbContext)
         {
             _configService = configService;
             _dbContext = dbContext;
@@ -43,18 +42,27 @@ namespace MyBlog.Controllers
             {
                 return Content("帳號密碼錯誤");
             }
-            else 
+            else
             {
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, user.Account),
                     new Claim("FullName", user.Name),
-                    new Claim(ClaimTypes.Role, "Administrator"),
+                    //new Claim(ClaimTypes.Role, "Admin"),
                     //new Claim("LastChanged", {Database Value})
                 };
 
-                var claimsIdentity = new ClaimsIdentity(
-                    claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                // 若今日登入帳號具有多角色權限則，則撈取後同時添加進來
+                var role = from r in _dbContext.roleRlAccounts
+                           where r.Account == user.Account
+                           select r.RoleCode;
+
+                foreach (var r in role) 
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, r));
+                }
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
                 var authProperties = new AuthenticationProperties
                 {
@@ -77,7 +85,7 @@ namespace MyBlog.Controllers
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
             }
 
-            return Done<Empty>(null, StateCode.OK);
+            return Done<Empty>(null, StateCode.Login);
         }
 
         [HttpPost]
@@ -85,21 +93,41 @@ namespace MyBlog.Controllers
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            return Done<Empty>(null, StateCode.OK);
+            return Done<Empty>(null, StateCode.Logout);
         }
 
 
         [HttpGet]
+        [AllowAnonymous]
         public string NoLogin()
         {
             return "未登入";
         }
 
-        [Authorize]
         [HttpGet]
         public string NeedLogin()
         {
             return "登入成功";
+        }
+
+        [HttpGet]
+        public ActionResult<ResponseBox<Empty>> NoAccess()
+        {
+            return Done<Empty>(null, StateCode.NoAccess);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Access")]
+        public string NeedAccess() 
+        {
+            return "有登入且有授權";
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Access2")]
+        public string NeedAccess2()
+        {
+            return "有登入且有授權";
         }
 
     }
