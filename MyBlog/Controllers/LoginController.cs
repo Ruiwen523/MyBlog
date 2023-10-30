@@ -82,7 +82,8 @@ namespace MyBlog.Controllers
                 };
 
                 // SignInAsync 會建立加密的 cookie ，並將它新增至目前的回應。
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
+                //await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
             }
 
             return Done<Empty>(null, StateCode.Login);

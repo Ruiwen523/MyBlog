@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using MyBlog.Data;
 using MyBlog.Models.Auth;
 using MyBlog.Models.Common;
+using MyBlog.Services.Interface;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,12 +19,14 @@ namespace MyBlog.Controllers
     public class SystemController : BaseController
     {
         private protected BloggingContext _context;
-        private readonly ILogger _logger;
+        private protected ILogger _logger;
+        private protected ISystemService _systemService;
 
-        public SystemController(BloggingContext bloggingContext, ILogger<SystemController> logger) 
+        public SystemController(BloggingContext bloggingContext, ILogger<SystemController> logger, ISystemService systemService) 
         {
             _context = bloggingContext;
             _logger = logger;
+            _systemService = systemService;
         }
 
         /// <summary>
@@ -31,15 +34,14 @@ namespace MyBlog.Controllers
         /// </summary>
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public ActionResult<ResponseBox<Empty>> CreateUser(User user)
+        public ActionResult<ResponseBox<User>> CreateUser(User user)
         {
-            _context.Users.Add(user);
-            var count = _context.SaveChangesAsync().Result;
+            var model = _systemService.AddUser(user);
 
-            if (count > 0)
+            if (model != null)
                 _logger.LogInformation(string.Format("寫入User成功 名稱: {0}", user.Name));
 
-            return Done(null, StateCode.OK);
+            return Done(model, StateCode.OK);
         }
 
         /// <summary>
@@ -72,6 +74,33 @@ namespace MyBlog.Controllers
                 _logger.LogInformation(string.Format("寫入RoleRlAccount成功 名稱: {0}", string.Join('、', roleRlAccounts)));
 
             return Done(null, StateCode.OK);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public ActionResult<ResponseBox<List<User>>> GetUsers(string Account = "") 
+        {
+            var users = _systemService.GetUsers(Account);
+
+
+            if (string.IsNullOrEmpty(Account)) 
+            {
+                //users = users.Where(m=> HttpContext.User.Claims.SingleOrDefault(u => u.Type.Equals(m.Account)))
+            }
+
+            //where user.Account == HttpContext.User.Claims.
+
+            return Done(users, StateCode.OK);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+
+        public ActionResult<ResponseBox<User>> GetLoginUser() 
+        {
+            var user = _systemService.GetLoginUser();
+
+            return Done(user, StateCode.OK);
         }
     }
 }

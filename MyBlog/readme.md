@@ -354,9 +354,6 @@ ref:
 5. [SOLID][2] 原則參考1
 6. 看看別人怎麼做: https://www.youtube.com/watch?v=DQxGDFZn_6Y&list=PLneJIGUTIItsqHp_8AbKWb7gyWDZ6pQyz&index=55
 
-[1]: <https://learn.microsoft.com/zh-tw/aspnet/core/mvc/controllers/dependency-injection?view=aspnetcore-3.1> "ASP.NET Core 中的選項模式"
-[2]: <https://oldmo860617.medium.com/%E6%9C%9D%E6%9B%B4%E5%A5%BD%E7%9A%84-ooc-%E8%B5%B0%E5%8E%BB-ioc-%E6%8E%A7%E5%88%B6%E5%8F%8D%E8%BD%89%E8%88%87-di-%E4%BE%9D%E8%B3%B4%E6%B3%A8%E5%85%A5-b7fed15ff058> "SOLID"
-
 > 有時間可多看看 `lock`方法與`volatile`。
 
 ### 將相關註冊移至擴充方法註冊
@@ -694,7 +691,7 @@ public class Startup
 ```
 
 3. 於`LoginController`新增`Login`、`Logout`、`NoLogin`、`NeedLogin`等Action動作方法
-4. 並於驗證成功後 宣告`ClaimsIdentity`物件設定後，指派給`HttpContext.SignInAsync(參數1, 2...)`進行登入動作
+4. 並於`Login`方法的驗證成功後 宣告`ClaimsIdentity`物件設定後，指派給`HttpContext.SignInAsync(參數1, 2...)`進行登入動作
 5. 驗證相關屬性設定可於`Startup.cs`中的`AddCookie(option => { option...});`內進行全域設定，否則會以`AuthenticationProperties`類別相同設定取代`Startup`設定，例如使用SSO登入過期時間15分鐘，使用系統登入20分鐘。
 6. 於想要進行驗證的相關`Action`或`Controller`層級加上`[Authorize]`標籤，並引入命名空間 `Microsoft.AspNetCore.Authorization;` 
 
@@ -765,11 +762,11 @@ public string NoLogin()
 [HttpGet]
 public string NeedLogin()
 {
-    return "登入成功";
+    return "需要登入才能回傳否則失敗";
 }
 ```
 
-7. 若全部都需要驗證則至`Startup.cs`中添加`Mvc.Filter`，並於`Login`的`Action`上添加`[AllowAnonymous]`允許匿名登入，表示該動作方法不需驗證。
+7. 或者全部都需要驗證則至`Startup.cs`中添加`services.AddMvc()`，並於`Login`的`Action`上添加`[AllowAnonymous]`允許匿名登入，表示該動作方法不需驗證。
 
 Startup.cs
 ``` C#
@@ -794,7 +791,7 @@ LoginController.cs
 ``` C#
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class LoginController : BaseController
     {
         [AllowAnonymous]
@@ -818,11 +815,171 @@ LoginController.cs
     }
 ```
 
+8. 結合`Roles`設定來驗證是否有該`Action`權限
+    1. 假定已於Startup.cs添加全域權限驗證並於相關`Action`方法進行`Roles`測試是否能成功取得回傳資料。
+    2. 修改Login驗證方法，將登入`Account`關聯的`Role`全部撈出，並於登入`SignInAsync()`前指派給`ClaimsIdentity`物件
+    3. 並於DB新增`User`與關聯`Role`資料表
 
-> IsPersistent = true, // 要實測一下該屬性是否為，瀏覽器全部關閉，而只關閉索引頁籤也不會執行瀏覽器關閉事件(登出)。  
+LoginController.cs
+``` C#
+
+[Route("api/[controller]/[action]")]
+[ApiController]
+public class LoginController : BaseController
+{
+    [AllowAnonymous]
+    [HttpPost]
+    public async Task<ActionResult<ResponseBox<Empty>>> LoginAsync(RequestBox<LoginUser> userData)
+    {
+        var user = _dbContext.Users.AsNoTracking()
+                                    .ToListAsync().Result
+                                    .SingleOrDefault(m => m.Account.Equals(userData.Body.UserId) && m.Password.Equals(userData.Body.Mima));
+        if (user == null)
+        {
+            return Content("帳號密碼錯誤");
+        }
+        else 
+        {
+            ...
+
+            var role = from r in _dbContext.roleRlAccounts
+                       where r.Account == user.Account
+                       select r.RoleCode;
+
+            foreach (var r in role) 
+            {
+                claims.Add(new Claim(ClaimTypes.Role, r));
+            }
+
+            ...
+        }
+
+        return Done<Empty>(null, StateCode.OK);
+    }
+
+
+    [HttpGet]
+    [AllowAnonymous]
+    public string NoLogin()
+    {
+        return "未登入";
+    }
+
+    [HttpGet]
+    public string NeedLogin()
+    {
+        return "登入成功";
+    }
+
+    [HttpGet]
+    public ActionResult<ResponseBox<Empty>> NoAccess()
+    {
+        return Done<Empty>(null, StateCode.NoAccess);
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "Access")]
+    public string NeedAccess() 
+    {
+        return "有登入且有授權";
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "Access2")]
+    public string NeedAccess2()
+    {
+        return "有登入且有授權";
+    }
+}
+```
+使用者資料表 及 對應關連角色 表  
+![使用者資料表](./截圖/使用者資料表1.png)
+![圖片介紹](./截圖/關聯角色資料表.png)
+
+
+9. 依據官方文件 [存取HttpContext][4]介紹，從`Service`取得`HttpContext`，並取出當前登入使用者的`Account`作為後續，CRUD資料時的變更人員。  
+   1.  `Startup`注入`services.AddHttpContextAccessor();`相依性，後端即可於`Controller`以外建構式注入後取用。
+   2.  調整`User`資料表加入創建者、創建日期、修改者、上次修改日期等欄位 ![使用者資料表](./截圖/使用者資料表2.png)  
+   3.  從前台登入並Post資料至  
+       ![創建使用者Request](./截圖/創建使用者Request.png)
+   4.  從Service取得IHttpContextAccessor，並取出登入使用者資料
+       
+SystemController.cs
+``` C#
+public class SystemController : BaseController
+{
+    private protected BloggingContext _context;
+    private protected ILogger _logger;
+    private protected ISystemService _systemService;
+
+    public SystemController(BloggingContext bloggingContext, ILogger<SystemController> logger, ISystemService systemService) 
+    {
+        _context = bloggingContext;
+        _logger = logger;
+        _systemService = systemService;
+    }
+
+    /// <summary>
+    /// 新增使用者
+    /// </summary>
+    [Authorize(Roles = "Admin")]
+    [HttpPost]
+    public ActionResult<ResponseBox<User>> CreateUser(User user)
+    {
+        var model = _systemService.AddUser(user);
+
+        if (model != null)
+            _logger.LogInformation(string.Format("寫入User成功 名稱: {0}", user.Name));
+
+        return Done(model, StateCode.OK);
+    }
+}
+```
+
+SystemService.cs
+``` C#
+public class SystemService : ISystemService
+{
+    private readonly BloggingContext _context;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public SystemService(BloggingContext context,
+                            IHttpContextAccessor httpContextAccessor) 
+    {
+        _context = context;
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    public User AddUser(User user)
+    {   
+        // var name = _httpContextAccessor.HttpContext.User.Claims.SingleOrDefault(m => m.Type.Equals("FullName"))?.Value;     
+        user.Creator = _httpContextAccessor.HttpContext.User.Claims.SingleOrDefault(m => m.Type.Equals(ClaimTypes.Name))?.Value;
+        user.CreateDate = DateTime.Now;
+        user.LastModifyDate = DateTime.Now;
+        user.LastModifior = "";
+
+        _context.Users.Add(user);
+        _context.SaveChanges();
+
+        return _context.Users.SingleOrDefault(m => m.Account.Equals(user.Account));
+    }
+
+    public User GetLoginUser()
+    {
+        var Account = _httpContextAccessor.HttpContext.User.Claims.SingleOrDefault(u => u.Type == ClaimTypes.Name)?.Value;
+        var user = _context.Users.SingleOrDefault(m => m.Account.Equals(Account));
+
+        return user;
+    }    
+}
+```
+
+> IsPersistent = true, // 要測一下該屬性是否為；瀏覽器全部關閉才觸發事件，而只關閉索引頁籤也不會執行瀏覽器關閉事件(登出)。  
 > 後續有空可嘗試複寫其驗證方法[參考官方文檔 覆寫CookieAuthenticationEvents][3]
 
-[3]: https://learn.microsoft.com/zh-tw/aspnet/core/security/authentication/cookie?view=aspnetcore-3.1
+
+
+## JWT驗證
 
 Lading...
 
@@ -890,3 +1047,12 @@ ref:
 
 未來移至CSS學習篇:
 1. CSS相關: https://www.youtube.com/watch?v=s3ifqDB3dLc
+
+
+
+
+
+[1]: <https://learn.microsoft.com/zh-tw/aspnet/core/mvc/controllers/dependency-injection?view=aspnetcore-3.1> "ASP.NET Core 中的選項模式"
+[2]: <https://oldmo860617.medium.com/%E6%9C%9D%E6%9B%B4%E5%A5%BD%E7%9A%84-ooc-%E8%B5%B0%E5%8E%BB-ioc-%E6%8E%A7%E5%88%B6%E5%8F%8D%E8%BD%89%E8%88%87-di-%E4%BE%9D%E8%B3%B4%E6%B3%A8%E5%85%A5-b7fed15ff058> "SOLID"
+[3]: https://learn.microsoft.com/zh-tw/aspnet/core/security/authentication/cookie?view=aspnetcore-3.1
+[4]: https://learn.microsoft.com/zh-tw/aspnet/core/fundamentals/http-context?view=aspnetcore-3.1

@@ -42,8 +42,12 @@ namespace MyBlog
             //});
             #endregion
 
+
+            // 未來升上NET5以上要將 AddNewtonsoftJson() 改成 AddJsonOptions()
+            // https://medium.com/@mvpdw06/net-core-3-1-%E5%BE%8C%E8%BD%89%E7%A7%BB-newtonsoft-json-%E8%87%B3-system-text-json-9727d774f92d
             services.AddControllers().AddNewtonsoftJson();
 
+            services.AddHttpContextAccessor();
 
             #region Swagger服務
             services.AddSwaggerGen(c =>
