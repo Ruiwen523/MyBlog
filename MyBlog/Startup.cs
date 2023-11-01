@@ -11,6 +11,9 @@ using MyBlog.Extensions;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace MyBlog
 {
@@ -30,77 +33,28 @@ namespace MyBlog
             services.AddConfig(Configuration)
                     .AddBatchRegisterDIConfig();
 
+            services.AddDbContext<BloggingContext>(
+                options => options.UseSqlServer("name=ConnectionStrings:BloggingContext"));
+
             //services.AddMemoryCache();
 
-            #region 已移至IConfigService註冊DI取用
-            //services.AddScoped<IDbConnection, SqlConnection>(serviceProvider =>
-            //{
-            //    //指派連線字串
-            //    SqlConnection conn = new SqlConnection();
-            //    conn.ConnectionString = Configuration.GetConnectionString("BloggingContext");
-            //    return conn;
-            //});
-            #endregion
-
-
-            // 未來升上NET5以上要將 AddNewtonsoftJson() 改成 AddJsonOptions()
-            // https://medium.com/@mvpdw06/net-core-3-1-%E5%BE%8C%E8%BD%89%E7%A7%BB-newtonsoft-json-%E8%87%B3-system-text-json-9727d774f92d
+            // 未來升上NET5以上要將 AddNewtonsoftJson() 改成 AddJsonOptions()  https://medium.com/@mvpdw06/net-core-3-1-%E5%BE%8C%E8%BD%89%E7%A7%BB-newtonsoft-json-%E8%87%B3-system-text-json-9727d774f92d
             services.AddControllers().AddNewtonsoftJson();
 
+            // 構建 Swagger 套件
+            services.AddSwaggerAPI();
+
+            // 構建 HttpContext DI 使Controller層以外也能透過DI建構出來
             services.AddHttpContextAccessor();
 
-            #region Swagger服務
-            services.AddSwaggerGen(c =>
-            {
-                //c.IgnoreObsoleteProperties();
-                // 影響SwaggerUI抬頭顯示內容
-                c.SwaggerDoc("v1", new OpenApiInfo
-                {
-                    Title = "API Document",
-                    Version = "v1",
-                    Description = "An ASP.NET Core Web API for managing My Blog",
-                    TermsOfService = new Uri("https://example.com/terms"),
-                    Contact = new OpenApiContact
-                    {
-                        Name = "Example Contact",
-                        Url = new Uri("https://example.com/contact")
-                    },
-                    License = new OpenApiLicense
-                    {
-                        Name = "Example License",
-                        Url = new Uri("https://example.com/license")
-                    }
-                });
-
-                // 可切換api樣板
-                c.SwaggerDoc("v2", new OpenApiInfo { Title = "API Document", Version = "v2" });
-            });
-
-            services.AddSwaggerGenNewtonsoftSupport();
-
-
-
-            #endregion
-
-            #region 使用 cookie 驗證 Identity
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                    .AddCookie(option =>
-                    {
-                        option.ExpireTimeSpan = TimeSpan.FromMinutes(20);
-                        option.LoginPath = new PathString("/api/Login/NoLogin"); // 未登入時導頁
-                        option.AccessDeniedPath = new PathString("/api/Login/NoAccess"); // 登入但無權限時導頁
-                    });
-            #endregion
+            // 構建 JWT 驗證設定
+            services.AddJwtAuthorize(Configuration);
 
             // 添加全域Filter驗證
             services.AddMvc(options =>
             {
                 options.Filters.Add(new AuthorizeFilter());
-            });
-
-
-            services.AddDbContext<BloggingContext>(
-                options => options.UseSqlServer("name=ConnectionStrings:BloggingContext"));
+            });   
         }
 
         // 使用Middleware

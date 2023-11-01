@@ -4,14 +4,17 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MyBlog.Data;
 using MyBlog.Models.Auth;
 using MyBlog.Models.Common;
 using MyBlog.Services.Interface;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using static MyBlog.Common.Enums.BlogEnum;
 
@@ -28,6 +31,60 @@ namespace MyBlog.Controllers
         {
             _configService = configService;
             _dbContext = dbContext;
+        }
+
+        [AllowAnonymous]
+        [HttpPost("jwtLogin")]
+        public async Task<ActionResult<ResponseBox<Token>>> JWTLogin(RequestBox<LoginUser> userData)
+        {
+            var user = (await _dbContext.Users.AsNoTracking().ToListAsync())
+                                              .SingleOrDefault(m => m.Account.Equals(userData.Body.UserId) && m.Password.Equals(userData.Body.Mima));            
+
+            if (user == null)
+            {
+                return Content("帳號密碼錯誤");
+            }
+            else
+            {
+                var claims = new List<Claim>
+                {
+                    new Claim(JwtRegisteredClaimNames.Email, user.Account),
+                    new Claim("FullName", user.Name),
+                    new Claim(JwtRegisteredClaimNames.NameId, user.Name),
+                };
+
+                // 若今日登入帳號具有多角色權限則，則撈取後同時添加進來
+                var role = from r in _dbContext.roleRlAccounts
+                           where r.Account == user.Account
+                           select r.RoleCode;
+
+                foreach (var r in role)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, r));
+                }
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                // 安全金鑰
+                var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configService.Security.JWT.KEY));
+
+                // JWT設定
+                var jwt = new JwtSecurityToken
+                (
+                    issuer: _configService.Security.JWT.KEY,
+                    audience: "",
+                    claims: claims,
+                    expires: DateTime.Now.AddMinutes(30), // 過期時限
+                    signingCredentials: new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature)
+                );
+
+                // 產生Token (依照 JWT 設定產出相應Token)
+                var token = new JwtSecurityTokenHandler().WriteToken(jwt);
+
+                var Result = new Token() { token = token };
+                
+                return Done(Result, StateCode.Login);
+            }
         }
 
         [AllowAnonymous]
@@ -57,7 +114,7 @@ namespace MyBlog.Controllers
                            where r.Account == user.Account
                            select r.RoleCode;
 
-                foreach (var r in role) 
+                foreach (var r in role)
                 {
                     claims.Add(new Claim(ClaimTypes.Role, r));
                 }
@@ -119,7 +176,7 @@ namespace MyBlog.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Access")]
-        public string NeedAccess() 
+        public string NeedAccess()
         {
             return "有登入且有授權";
         }

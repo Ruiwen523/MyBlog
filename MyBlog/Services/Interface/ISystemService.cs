@@ -1,5 +1,6 @@
 ﻿using MyBlog.Models.Auth;
 using System.Collections.Generic;
+using static MyBlog.Common.Enums.BlogEnum;
 
 namespace MyBlog.Services.Interface
 {
@@ -7,7 +8,7 @@ namespace MyBlog.Services.Interface
     {
         public List<User> GetUsers(string Account = "");
 
-        public User GetLoginUser();
+        public (LoginUserDTO, StateCode) GetLoginUser();
 
         public User AddUser(User user);
 

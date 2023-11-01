@@ -96,11 +96,11 @@ namespace MyBlog.Controllers
         [HttpGet]
         [Authorize(Roles = "Admin")]
 
-        public ActionResult<ResponseBox<User>> GetLoginUser() 
+        public ActionResult<ResponseBox<LoginUserDTO>> GetLoginUser() 
         {
             var user = _systemService.GetLoginUser();
 
-            return Done(user, StateCode.OK);
+            return Done(user.Item1, user.Item2);
         }
     }
 }

@@ -981,6 +981,139 @@ public class SystemService : ISystemService
 
 ## JWT驗證
 
+ref:  
+   1. 保哥文章: dhttps://blog.miniasp.com/post/2022/02/13/How-to-use-JWT-token-based-auth-in-aspnet-core-60
+   2. 有教學: https://www.youtube.com/watch?v=3LV0JAZbORQ&list=PLneJIGUTIItsqHp_8AbKWb7gyWDZ6pQyz&index=69
+
+### Error Exception :
+   - JWT error IDX10634: Unable to create the SignatureProvider C#
+      1.  https://stackoverflow.com/questions/49875167/jwt-error-idx10634-unable-to-create-the-signatureprovider-c-sharp
+      2.  須為對稱加密演算法
+      3.  密鑰必須至少有32 個字元。  
+
+1. 添加 JWT 基本配置
+2. 於`Startup.cs` 加入 JWT 驗證機制，並獨立`RegisterDIConfig.cs`至擴充方法中。
+
+AppSetting.json
+``` Json
+  "Security": {
+    "JWT": {
+      "KEY": "BE8DF1F28C0ABC85A0ED0C6860E5D832", // MD5 {Blog}
+      "Issur": "Ruiwen", // 發行者
+      "Audience": "Other" // 發給誰
+    } 
+  }
+```
+
+Startup.cs & RegisterDIConfig.cs
+``` C#
+public void ConfigureServices(IServiceCollection services)
+{
+    // 構建 JWT 驗證設定
+    services.AddJwtAuthorize(Configuration);
+}
+
+public static class RegisterDIConfig
+{
+    /// <summary>
+    /// 這是 JWT 驗證方法
+    /// </summary>
+    public static IServiceCollection AddJwtAuthorize(this IServiceCollection services, IConfiguration config)
+    {
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(option =>
+                {
+                    option.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true, // 需要驗證發行者
+                        ValidIssuer = config["Security:JWT:Issur"],
+                        ValidateAudience = true, // 需要驗證發給誰
+                        ValidAudience = config["Security:JWT:Audience"],
+                        ValidateLifetime = true, // 驗證生命週期 (預設本身就是True)
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Security:JWT:KEY"]))
+                    };
+                });
+
+        return services;
+    }
+}
+```
+
+LoginController.cs
+``` C#
+[AllowAnonymous]
+[HttpPost("jwtLogin")]
+public async Task<ActionResult<ResponseBox<Token>>> JWTLogin(RequestBox<LoginUser> userData)
+{
+    var user = (await _dbContext.Users.AsNoTracking().ToListAsync())
+                                        .SingleOrDefault(m => m.Account.Equals(userData.Body.UserId) && m.Password.Equals(userData.Body.Mima));            
+
+    if (user == null)
+    {
+        return Content("帳號密碼錯誤");
+    }
+    else
+    {
+        var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Email, user.Account),
+            new Claim("FullName", user.Name),
+            new Claim(JwtRegisteredClaimNames.NameId, user.Name),
+        };
+
+        // 若今日登入帳號具有多角色權限則，則撈取後同時添加進來
+        var role = from r in _dbContext.roleRlAccounts
+                    where r.Account == user.Account
+                    select r.RoleCode;
+
+        foreach (var r in role)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, r));
+        }
+
+        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+        // 安全金鑰
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configService.Security.JWT.KEY));
+
+        // JWT設定
+        var jwt = new JwtSecurityToken
+        (
+            issuer: _configService.Security.JWT.KEY,
+            audience: "",
+            claims: claims,
+            expires: DateTime.Now.AddMinutes(30), // 過期時限
+
+            // 對稱加密演算法:   SecurityAlgorithms.HmacSha256Signature
+            // 非對稱加密演算法: new RsaSecurityKey(_rsa), SecurityAlgorithms.RsaSha256Signature
+            signingCredentials: new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature)
+        );
+
+        // 產生Token (依照 JWT 設定產出相應Token)
+        var token = new JwtSecurityTokenHandler().WriteToken(jwt);
+
+        var Result = new Token() { token = token };
+        
+        return Done(Result, StateCode.Login);
+    }
+}
+```
+
+Result Token
+``` Json
+{
+  "header": {
+    "message": "登入成功",
+    "stateCode": "Login"
+  },
+  "body": {
+    "token": "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IlJ1aXdlbjUyM0BnbWFpbC5jb20iLCJGdWxsTmFtZSI6IlJ1aXdlbiIsIm5hbWVpZCI6IlJ1aXdlbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6WyJBZG1pbiIsIkFjY2VzcyIsIkFjY2VzczIiXSwiZXhwIjoxNjk4ODUwOTIwLCJpc3MiOiJCRThERjFGMjhDMEFCQzg1QTBFRDBDNjg2MEU1RDgzMiJ9.tjD1wKwNRHEY9P8dPw5xde_9iOHoVsEbHGeNdfG8srM"
+  }
+}
+```
+
+未完
+
 Lading...
 
 ## 非同步觀念
@@ -997,11 +1130,11 @@ Lading...
 ## ActionFilter 應用實作
 1. 如果今天有人知道 Get/Post等 路由除了經過Token等有效驗證外，應還要檢查是否有該Controller/Action權限。
 2. 假使今天有個控制器都是在做查詢類的情境，那可能會有完全共用的輸出(Component View)，其所需的Response Model物件肯定也一樣，此時就可以使用，但這總感覺不太對[Filter]味，待研究`[ActionFilter]`實務上究竟是如還運用。
+3. 資料前處理(檢核)
+4. 後處理應該是包裝送出?
 
 > 註冊全域Filter Mvc.Add(Factory)  
 > 可嘗試複寫其驗證方法 `CookieAuthenticationEvents`
-
-
 
 
 Lading... 
@@ -1016,6 +1149,11 @@ Lading...
 1. 有可能在Query或其他SaveChange()時，跑去寫一行Log或將所執行的動作回寫至DB特定的紀錄表 這類應用
 
 Lading... 
+
+## API的Body於Request時，會夾帶 FileInfo/物件 等請求 (待研究一下)
+
+Lading... 
+
 
 ## 效能驗證方式
 1. Dapper 查詢
@@ -1047,6 +1185,19 @@ ref:
 
 未來移至CSS學習篇:
 1. CSS相關: https://www.youtube.com/watch?v=s3ifqDB3dLc
+
+
+
+## 延伸閱讀
+### GIT
+- Cherry-Pick 挑Commit提交
+- Rebase 修改特定Commit描述
+- 合併多Commit成一個Commit
+
+
+
+
+
 
 
 

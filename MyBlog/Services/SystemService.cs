@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using static MyBlog.Common.Enums.BlogEnum;
 
 namespace MyBlog.Services
 {
@@ -16,7 +17,7 @@ namespace MyBlog.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public SystemService(BloggingContext context,
-                             IHttpContextAccessor httpContextAccessor) 
+                             IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
@@ -35,15 +36,26 @@ namespace MyBlog.Services
             return _context.Users.SingleOrDefault(m => m.Account.Equals(user.Account));
         }
 
-        public User GetLoginUser()
+        public (LoginUserDTO, StateCode) GetLoginUser()
         {
-            //_context.Users.AsNoTracking()
-            var Account = _httpContextAccessor.HttpContext.User.Claims.ToList().SingleOrDefault(u => u.Type == ClaimTypes.Name)?.Value;
+            var UserInfo = new LoginUserDTO();
+            var Claims = _httpContextAccessor.HttpContext.User.Claims.ToList();
+            if (Claims.Count > 0)
+            {
+                var Account = _httpContextAccessor.HttpContext.User.Claims.ToList().SingleOrDefault(u => u.Type == ClaimTypes.Name)?.Value;
+                var User = _context.Users.SingleOrDefault(m => m.Account.Equals(Account));
 
-            var user = _context.Users.SingleOrDefault(m => m.Account.Equals(Account));
-            var name = _httpContextAccessor.HttpContext.User.Claims.ToList().SingleOrDefault(u => u.Type == "FullName")?.Value;
+                UserInfo.Account = Account;
+                UserInfo.Name = User.Name;
+                UserInfo.Role = new List<string>();
+                UserInfo.Menus = new List<Menu>();
+            }
+            else 
+            {
+                return (null, StateCode.Fail);
+            }
 
-            return user;
+            return (UserInfo, StateCode.OK);
         }
 
         public List<User> GetUsers(string Account = "")
