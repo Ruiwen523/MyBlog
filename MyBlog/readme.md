@@ -982,17 +982,22 @@ public class SystemService : ISystemService
 ## JWT驗證
 
 ref:  
-   1. 保哥文章: dhttps://blog.miniasp.com/post/2022/02/13/How-to-use-JWT-token-based-auth-in-aspnet-core-60
+   1. 保哥文章: https://blog.miniasp.com/post/2022/02/13/How-to-use-JWT-token-based-auth-in-aspnet-core-60
    2. 有教學: https://www.youtube.com/watch?v=3LV0JAZbORQ&list=PLneJIGUTIItsqHp_8AbKWb7gyWDZ6pQyz&index=69
+   3. 麥克半路出家: https://medium.com/%E9%BA%A5%E5%85%8B%E7%9A%84%E5%8D%8A%E8%B7%AF%E5%87%BA%E5%AE%B6%E7%AD%86%E8%A8%98/%E7%AD%86%E8%A8%98-%E9%80%8F%E9%81%8E-jwt-%E5%AF%A6%E4%BD%9C%E9%A9%97%E8%AD%89%E6%A9%9F%E5%88%B6-2e64d72594f8
 
 ### Error Exception :
    - JWT error IDX10634: Unable to create the SignatureProvider C#
       1.  https://stackoverflow.com/questions/49875167/jwt-error-idx10634-unable-to-create-the-signatureprovider-c-sharp
       2.  須為對稱加密演算法
-      3.  密鑰必須至少有32 個字元。  
+      3.  密鑰必須至少有32 個字元。 
+   -  www-authenticate: Bearer error="invaild_token", error_description="The audience 'empty' is invalid"
+      1. 如果遇到該Error則檢查`Startup.cs`中的驗證項目設定，並檢查`LoginController.cs`中的`JwtSecurityToken`物件是否有設定好
+      2. stack overflow: https://stackoverflow.com/questions/64498872/net-core-3-1-bearer-error-invalid-token-error-description-the-audience-emp
 
 1. 添加 JWT 基本配置
-2. 於`Startup.cs` 加入 JWT 驗證機制，並獨立`RegisterDIConfig.cs`至擴充方法中。
+2. 安裝套件`Microsoft.AspNetCore.Authentication.JwtBearer Version="3.1.32"`
+3. 於`Startup.cs` 加入 JWT 驗證機制，並獨立至`RegisterDIConfig.cs`擴充方法中。
 
 AppSetting.json
 ``` Json
@@ -1079,14 +1084,14 @@ public async Task<ActionResult<ResponseBox<Token>>> JWTLogin(RequestBox<LoginUse
         // JWT設定
         var jwt = new JwtSecurityToken
         (
-            issuer: _configService.Security.JWT.KEY,
-            audience: "",
+            issuer: _configService.Security.JWT.Issur,
+            audience: _configService.Security.JWT.Audience,
             claims: claims,
             expires: DateTime.Now.AddMinutes(30), // 過期時限
 
-            // 對稱加密演算法:   SecurityAlgorithms.HmacSha256Signature
+            // 對稱加密演算法:   SecurityAlgorithms.HmacSha256
             // 非對稱加密演算法: new RsaSecurityKey(_rsa), SecurityAlgorithms.RsaSha256Signature
-            signingCredentials: new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature)
+            signingCredentials: new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256)
         );
 
         // 產生Token (依照 JWT 設定產出相應Token)
@@ -1112,8 +1117,18 @@ Result Token
 }
 ```
 
-未完
+可將 Token 放置到該 [JWT.IO](https://jwt.io/) 解析出對應 Value 玩玩看原理 
 
+### Memo
+> `var claims = new List<Claim>()` 宣告出來的屬性`Type`可在後續程式運作中從 HttpContext.User 物件中取出使用。
+> `var jwt = new JwtSecurityToken()`這裡會影響到產出的`Token`值，後續驗證Token時，若有將`ValidateIssuer`與`ValidateAudience`設為True，則該方法必填入發行者(`issuer: _configService.Security.JWT.Issur`)&授予者(`audience: _configService.Security.JWT.Audience`)
+> `ClockSkew = TimeSpan.Zero`用來設定`expires: DateTime.Now.AddMinutes(30)`，一旦超過時間就直接回傳401而非偏移還能繼續使用。
+> `appsetting.json`金鑰絕不能洩漏，否則會被竄改直接添加Role，使駭客有權限讀取伺服器的任意Action。
+> ![JWT_IO](./截圖/JWT_IO.png)  
+> JWT沒有辦法做登入登出動作，僅能依靠設定的期限到期才算結束。
+
+
+未完!!!  
 Lading...
 
 ## 非同步觀念
@@ -1164,6 +1179,8 @@ Lading...
 Lading... 
 
 ## 快取功能 (待研究)
+研究 Redis
+
 ref: 
 1. https://learn.microsoft.com/zh-tw/aspnet/core/performance/caching/memory?view=aspnetcore-3.1
 
@@ -1193,6 +1210,12 @@ ref:
 - Cherry-Pick 挑Commit提交
 - Rebase 修改特定Commit描述
 - 合併多Commit成一個Commit
+
+### C#
+- C#基礎教學 https://xianlee.gitbooks.io/csharp-basic/content/index.html#
+
+### 其他 MVC 教學
+- https://blog.hungwin.com.tw/aspnet-core-mvc-webapi-client/
 
 
 

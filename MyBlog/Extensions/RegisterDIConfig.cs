@@ -144,7 +144,8 @@ namespace MyBlog.Extensions
                             ValidateAudience = true, // 需要驗證發給誰
                             ValidAudience = config["Security:JWT:Audience"],
                             ValidateLifetime = true, // 驗證生命週期 (預設本身就是True)
-                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Security:JWT:KEY"]))
+                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Security:JWT:KEY"])),
+                            ClockSkew = TimeSpan.Zero,
                         };
                     });
 

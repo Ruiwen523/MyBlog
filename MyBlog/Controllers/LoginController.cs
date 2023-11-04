@@ -34,7 +34,7 @@ namespace MyBlog.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost("jwtLogin")]
+        [HttpPost]
         public async Task<ActionResult<ResponseBox<Token>>> JWTLogin(RequestBox<LoginUser> userData)
         {
             var user = (await _dbContext.Users.AsNoTracking().ToListAsync())
@@ -51,6 +51,11 @@ namespace MyBlog.Controllers
                     new Claim(JwtRegisteredClaimNames.Email, user.Account),
                     new Claim("FullName", user.Name),
                     new Claim(JwtRegisteredClaimNames.NameId, user.Name),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(JwtRegisteredClaimNames.Iss, _configService.Security.JWT.Issur),
+                    new Claim(JwtRegisteredClaimNames.Aud, _configService.Security.JWT.Audience),
+                    
+                    //new Claim(JwtRegisteredClaimNames.Jti, _configService.Security.JWT)
                 };
 
                 // 若今日登入帳號具有多角色權限則，則撈取後同時添加進來
@@ -71,11 +76,11 @@ namespace MyBlog.Controllers
                 // JWT設定
                 var jwt = new JwtSecurityToken
                 (
-                    issuer: _configService.Security.JWT.KEY,
-                    audience: "",
+                    issuer: _configService.Security.JWT.Issur,
+                    audience: _configService.Security.JWT.Audience,
                     claims: claims,
                     expires: DateTime.Now.AddMinutes(30), // 過期時限
-                    signingCredentials: new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature)
+                    signingCredentials: new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256)
                 );
 
                 // 產生Token (依照 JWT 設定產出相應Token)
@@ -89,7 +94,7 @@ namespace MyBlog.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<ResponseBox<Empty>>> LoginAsync(RequestBox<LoginUser> userData)
+        public async Task<ActionResult<ResponseBox<Empty>>> CookiesLogin(RequestBox<LoginUser> userData)
         {
             var user = _dbContext.Users.AsNoTracking()
                                        .ToListAsync().Result
@@ -184,6 +189,13 @@ namespace MyBlog.Controllers
         [HttpGet]
         [Authorize(Roles = "Access2")]
         public string NeedAccess2()
+        {
+            return "有登入且有授權";
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Access3")]
+        public string NeedAccess3()
         {
             return "有登入且有授權";
         }
