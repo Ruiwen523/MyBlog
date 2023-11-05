@@ -1274,6 +1274,10 @@ Lading...
 Lading... 
 
 
+## NET Core 簡介
+ref: 
+https://www.youtube.com/watch?v=AL_997rtR80
+
 
 ## 延伸閱讀
 ### GIT
