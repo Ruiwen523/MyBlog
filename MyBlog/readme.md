@@ -651,6 +651,11 @@ ref:
 
 Lading...
 
+## ASP.NET Core 中的路由
+ref:
+1. https://learn.microsoft.com/zh-tw/aspnet/core/fundamentals/routing?view=aspnetcore-3.1
+2. https://learn.microsoft.com/zh-tw/aspnet/core/mvc/controllers/routing?view=aspnetcore-3.1
+
 ## 身分驗證篇
 ref:
 1. 官方文件概觀: https://learn.microsoft.com/zh-tw/aspnet/core/security/?view=aspnetcore-3.1
@@ -1207,9 +1212,23 @@ ref:
 ref:
 - https://juldhais.net/clean-architecture-in-asp-net-core-web-api-4e5ef0b96f99
 
+
+## C# 物件導向 (OO) (待研究)
+ref :
+1. https://medium.com/@newpage0720/c-%E5%AD%B8%E7%BF%92%E7%AD%86%E8%A8%98-%E7%89%A9%E4%BB%B6%E5%B0%8E%E5%90%91%E5%AD%B8%E7%BF%92-73bd4ddb0fa8
+2. https://coreychen71.github.io/posts/2019-10/oop/
+3. https://www.w3schools.com/cs/cs_oop.php
+4. https://break0344.medium.com/principles-of-object-oriented-design-d6f126d57acc
+5. 
+
 Lading... 
 
-## DDD、TDD、CQRS (待研究)
+## 設計模式 (待研究)
+
+1. DDD
+2. TDD
+3. CQRS 
+4. https://medium.com/@gustavorestani/the-most-used-design-patterns-in-net-development-80d76f9fb6b
 
 Lading... 
 
