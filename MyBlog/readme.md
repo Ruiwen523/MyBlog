@@ -655,6 +655,9 @@ Lading...
 ref:
 1. https://learn.microsoft.com/zh-tw/aspnet/core/fundamentals/routing?view=aspnetcore-3.1
 2. https://learn.microsoft.com/zh-tw/aspnet/core/mvc/controllers/routing?view=aspnetcore-3.1
+3. https://coolmandiary.blogspot.com/2021/09/net-core-web-api09web-api.html
+4. https://jovepater.com/article/asp-net-core-5-ep-12-routing-controller/
+5. https://ithelp.ithome.com.tw/articles/10243332
 
 ## 身分驗證篇
 ref:
@@ -1063,7 +1066,7 @@ public static class RegisterDIConfig
 LoginController.cs
 ``` C#
 [AllowAnonymous]
-[HttpPost("jwtLogin")]
+[HttpPost]
 public async Task<ActionResult<ResponseBox<Token>>> JWTLogin(RequestBox<LoginUser> userData)
 {
     var user = (await _dbContext.Users.AsNoTracking().ToListAsync())
@@ -1128,12 +1131,38 @@ Result Token
     "stateCode": "Login"
   },
   "body": {
-    "token": "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IlJ1aXdlbjUyM0BnbWFpbC5jb20iLCJGdWxsTmFtZSI6IlJ1aXdlbiIsIm5hbWVpZCI6IlJ1aXdlbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6WyJBZG1pbiIsIkFjY2VzcyIsIkFjY2VzczIiXSwiZXhwIjoxNjk4ODUwOTIwLCJpc3MiOiJCRThERjFGMjhDMEFCQzg1QTBFRDBDNjg2MEU1RDgzMiJ9.tjD1wKwNRHEY9P8dPw5xde_9iOHoVsEbHGeNdfG8srM"
+    "token": "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IlJ1aXdlbjUyM0BnbWFpbC5jb20iLCJGdWxlbiIsIm5hbWVpZCI6IlJ1aXdlbiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6WyJBZG1pbiIsIkFjY2VzcyIsIkFjY2VzczIiXSwiZXhwIjoxNjk4ODUwOTIwLCJpc3MiOiJCRThERjFGMjhDMEFCQzg1QTBFRDBDNjg2MEU1RDgzMiJ9.tjD1wKwNRHEY9P8dPw5xde_9iOHoVsEbHGeNdfG8srM"
   }
 }
 ```
 
+Postman  
+![JWTLogin](./截圖/Postman1.png)  
+
+於Headers 加入 Bearer {Token} 即可常是呼叫相關`Action`
+![NeedLogin](./截圖/NeedLogin.png)
+
+或者在旁邊的`Authorization`選擇Type: Bearer Token 緊接著貼上{Token}即可查詢
+![NeedLogin2](./截圖/NeedLogin2.png)
+
+
+LoginController.cs 成功登入後的取值方法 `GetJWT_Type()`
+``` C# 
+[HttpGet]
+[Authorize(Roles = "Access")]
+public string GetJWT_Type()
+{
+    var Claims = HttpContext.User.Claims.ToList();
+    var FullName1 = Claims.Where(m => m.Type.Equals("FullName")).First().Value;
+    var FullName2 = HttpContext.User.FindFirstValue("FullName");
+    var Email = HttpContext.User.FindFirstValue(ClaimTypes.Email);
+
+    return FullName2;
+}
+```
+
 可將 Token 放置到該 [JWT.IO](https://jwt.io/) 解析出對應 Value 玩玩看原理 
+![JWT_IO_WEB](截圖/JWT_IO2.png)
 
 ### Memo
 > `var claims = new List<Claim>()` 宣告出來的屬性`Type`可在後續程式運作中從 HttpContext.User 物件中取出使用。  
@@ -1211,6 +1240,7 @@ ref:
 ## Clean Code、Clean Architecture
 ref:
 - https://juldhais.net/clean-architecture-in-asp-net-core-web-api-4e5ef0b96f99
+- https://medium.com/@nile.bits/clean-code-in-c-a-guide-to-writing-elegant-net-applications-db8698c8c731
 
 
 ## C# 物件導向 (OO) (待研究)

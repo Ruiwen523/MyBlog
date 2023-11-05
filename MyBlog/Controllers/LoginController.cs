@@ -200,5 +200,17 @@ namespace MyBlog.Controllers
             return "有登入且有授權";
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Access")]
+        public string GetJWT_Type()
+        {
+            var Claims = HttpContext.User.Claims.ToList();
+            var FullName1 = Claims.Where(m => m.Type.Equals("FullName")).First().Value;
+            var FullName2 = HttpContext.User.FindFirstValue("FullName");
+            var Email = HttpContext.User.FindFirstValue(ClaimTypes.Email);
+
+            return FullName2;
+        }
+
     }
 }
