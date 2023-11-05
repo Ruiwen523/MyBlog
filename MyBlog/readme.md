@@ -186,8 +186,18 @@ ref:
 - Enum的描述`[Description("OK")]`屬性 https://www.ruyut.com/2022/09/csharp-enum-description.html
 
 1. 先創建空的`BaseController.cs` 然後看是API控制器就繼承`ControllerBase`，若為MVC控制器就繼承`Controller`  
-
-2. 簡單創建一個`ResponseBox.cs`模型，裡面屬性放`Header`與`Body`
+2. HTTP網路基礎: https://miahsuwork.medium.com/%E7%AC%AC%E5%85%AD%E9%80%B1-%E7%B6%B2%E8%B7%AF%E5%9F%BA%E7%A4%8E-http-request-response-7d7e0cb88ed8
+3. API 基礎: https://miahsuwork.medium.com/%E7%AC%AC%E5%85%AD%E9%80%B1-api-%E5%9F%BA%E7%A4%8E-json-restful-curl-%E6%8C%87%E4%BB%A4-28670813764e
+4. 包裝成統一格式實作參考: https://fullstackladder.dev/blog/2015/10/20/web-api-unify-response-message/
+5. 包裝成統一格式實作參考: https://dotblogs.com.tw/jasonyah/2013/12/06/how-to-handle-webapi-response-and-handle-exception
+6. 待研究1: https://dotblogs.azurewebsites.net/wellwind/2015/10/20/web-api-customize-response-1
+7. 待研究2: https://www.dotblogs.com.tw/wellwind/2015/10/21/web-api-customize-response-2
+8. 待研究3: https://www.dotblogs.com.tw/wellwind/2015/11/13/web-api-customize-response-3
+9. 待研究4: https://dotblogs.com.tw/wellwind/2016/02/24/web-api-customize-response-4
+10. 待研究5: https://dotblogs.com.tw/wellwind/2016/02/25/web-api-customize-response-5
+11. JAVA的統一格式: https://www.tpisoftware.com/tpu/articleDetails/1717
+12. C#的統一格式: https://ronsun.github.io/content/20190317-webapi-response-data-format.html
+13. 簡單創建一個`ResponseBox.cs`模型，裡面屬性放`Header`與`Body`
    - 其中`Header`要再創建一個類別，屬性放`Message`和`StateCode`
    - `StateCode`型別為`enum` 結合上述ref: 提供的擷取`Attribute`的擴充方法，取得描述上的文字  
   
@@ -321,7 +331,7 @@ MVC中的JSON編/解碼器
 6. IJsonHelper
    - 僅Razor View
 
-若要再Razor View前台的JS使用，須搭配`@Html.Raw(jsonStr);`表示不做HTML編碼，即可再JS正常使用它。
+若要再Razor View前台的JS使用，須搭配`@Html.Raw(jsonStr);`表示做HTML編碼，即可再JS正常使用它。
 
 ## 建立DI註冊器
 
@@ -352,7 +362,8 @@ ref:
      - 優: 適合處理併發請求
 4. 從控制器存取應用程式或組態設定是常見的模式。 [ASP.NET Core 選項模式][1]中所述的選項模式是管理設定的慣用方法。 一般而言，不要將 IConfiguration 直接插入至控制器。 
 5. [SOLID][2] 原則參考1
-6. 看看別人怎麼做: https://www.youtube.com/watch?v=DQxGDFZn_6Y&list=PLneJIGUTIItsqHp_8AbKWb7gyWDZ6pQyz&index=55
+6. SOLID 原則Config的選項模式實作參考 [https://juldhais.net/implementing-options-pattern-to-read-the-configuration-in-appsettings-json-file-e80fa5bdc111]
+7. 看看別人怎麼做: https://www.youtube.com/watch?v=DQxGDFZn_6Y&list=PLneJIGUTIItsqHp_8AbKWb7gyWDZ6pQyz&index=55
 
 > 有時間可多看看 `lock`方法與`volatile`。
 
@@ -626,7 +637,7 @@ public List<T> Query<T>(string sql, DynamicParameters dynamic = null, DbSource d
 
 ## Appsetting.{environment}.json
 
-.NET Core 會依據`ASPNETCORE_ENVIRONMENT`設定的環境變數不同，而讀取不同的Server環境變數設定檔，最直接是Log Level與ConnectionString，一些API的設定也會不同等。
+.NET Core 會依據`ASPNETCORE_ENVIRONMENT`設定的環境變數不同，而讀取不同的Server環境變數設定檔，最直接是Log Level與ConnectionString，一些API的設定也會不同等。  
 ref:
 1. 黑暗大這篇應該就夠了: https://blog.darkthread.net/blog/appsetting-by-environment/
 2. https://marcus116.blogspot.com/2019/04/netcore-aspnet-core-appsettingsjson.html
@@ -1120,9 +1131,9 @@ Result Token
 可將 Token 放置到該 [JWT.IO](https://jwt.io/) 解析出對應 Value 玩玩看原理 
 
 ### Memo
-> `var claims = new List<Claim>()` 宣告出來的屬性`Type`可在後續程式運作中從 HttpContext.User 物件中取出使用。
-> `var jwt = new JwtSecurityToken()`這裡會影響到產出的`Token`值，後續驗證Token時，若有將`ValidateIssuer`與`ValidateAudience`設為True，則該方法必填入發行者(`issuer: _configService.Security.JWT.Issur`)&授予者(`audience: _configService.Security.JWT.Audience`)
-> `ClockSkew = TimeSpan.Zero`用來設定`expires: DateTime.Now.AddMinutes(30)`，一旦超過時間就直接回傳401而非偏移還能繼續使用。
+> `var claims = new List<Claim>()` 宣告出來的屬性`Type`可在後續程式運作中從 HttpContext.User 物件中取出使用。  
+> `var jwt = new JwtSecurityToken()`這裡會影響到產出的`Token`值，後續驗證Token時，若有將`ValidateIssuer`與`ValidateAudience`設為True，則該方法必填入發行者(`issuer: _configService.Security.JWT.Issur`)&授予者(`audience: _configService.Security.JWT.Audience`)  
+> `ClockSkew = TimeSpan.Zero`用來設定`expires: DateTime.Now.AddMinutes(30)`，一旦超過時間過期就直接回傳401而非偏移還能繼續使用。
 > `appsetting.json`金鑰絕不能洩漏，否則會被竄改直接添加Role，使駭客有權限讀取伺服器的任意Action。
 > ![JWT_IO](./截圖/JWT_IO.png)  
 > JWT沒有辦法做登入登出動作，僅能依靠設定的期限到期才算結束。
@@ -1192,16 +1203,26 @@ ref:
 - https://learn.microsoft.com/zh-tw/aspnet/core/test/load-tests?view=aspnetcore-3.1
 - https://blog.twjoin.com/%E6%8B%93%E5%B1%95%E6%8A%80%E8%83%BD%E6%A8%B9%E4%B9%8B%E5%A3%93%E5%8A%9B%E6%B8%AC%E8%A9%A6-stress-test-%E7%AF%87-59b3d184b804
 
+## Clean Code、Clean Architecture
+ref:
+- https://juldhais.net/clean-architecture-in-asp-net-core-web-api-4e5ef0b96f99
+
+Lading... 
 
 ## DDD、TDD、CQRS (待研究)
 
+Lading... 
+
 ## 單元xUnit測試 (待研究)
 
+Lading... 
 
 ## 其餘前端相關補充
 
 未來移至CSS學習篇:
 1. CSS相關: https://www.youtube.com/watch?v=s3ifqDB3dLc
+
+Lading... 
 
 
 
@@ -1211,11 +1232,14 @@ ref:
 - Rebase 修改特定Commit描述
 - 合併多Commit成一個Commit
 
+Lading... 
+
 ### C#
 - C#基礎教學 https://xianlee.gitbooks.io/csharp-basic/content/index.html#
 
 ### 其他 MVC 教學
 - https://blog.hungwin.com.tw/aspnet-core-mvc-webapi-client/
+
 
 
 
