@@ -53,11 +53,15 @@ Model DataAnnotations
 	Remove-Migration  
 
 逆向工程 {DB First}  
-	1. dotnet tool install --global dotnet-ef  
-	2. dotnet add package Microsoft.EntityFrameworkCore.Design  
-	3. dotnet ef dbcontext scaffold <connection-string> <provider> --data-annotations 產出包含Annotations的Model  
-	4. dotnet ef dbcontext scaffold "Server=(localdb)\MSSQLLocalDB;Database=Blog;Trusted_Connection=True;MultipleActiveResultSets=true" Microsoft.EntityFrameworkCore.SqlServer -o Models  
-	5. dotnet build  
+ref:
+- 官方文件: https://learn.microsoft.com/zh-tw/ef/core/managing-schemas/scaffolding/?tabs=dotnet-core-cli
+  
+
+1. dotnet tool install --global dotnet-ef  
+2. dotnet add package Microsoft.EntityFrameworkCore.Design  
+3. dotnet ef dbcontext scaffold <connection-string> <provider> --data-annotations 產出包含Annotations的Model  
+4. dotnet ef dbcontext scaffold "Server=(localdb)\MSSQLLocalDB;Database=Blog;Trusted_Connection=True;MultipleActiveResultSets=true" Microsoft.EntityFrameworkCore.SqlServer -o Models  
+5. dotnet build  
 
 # 安裝 Postman
 	建立Blog.cs、Post.cs模型，並使用Scaffold產出EFCore的API控制器，
@@ -1187,11 +1191,53 @@ Lading...
 
 Lading... 
 
-## ActionFilter 應用實作
+## 篩選條件 Filter篇
+ref:
+1. 官方文件: https://learn.microsoft.com/zh-tw/aspnet/core/mvc/controllers/filters?view=aspnetcore-3.1
+
+
+下圖顯示篩選條件類型如何在篩選條件管線中互動。  
+![Filters](./截圖/Filters.png)
+
+### 授權篩選條件 Authorization Filters 
+
+
+### 資源篩選條件 Resource Filters
+可運用於限制使用者上傳檔案篩選條件  
+Size : 5MB  
+Format: xlsx、docx、pdf
+
+### 動作篩選條件 Action Filters
+可運用於檢查Request格式是否正確，若不正確便直接返回
+
+### 例外狀況篩選條件 Exception Filters
+1. 發生例外才會真的經過這裡
+2. 可寫成全域
+
+###  結果篩選條件 Result Filters
+可運用於包裝 Response 統一格式  
+``` Json
+{
+    Status Code : "", 
+    Message: "",
+    Data:
+    {
+        Model : {}
+    }
+}
+```
+
+
+
+
+<!-- 
 1. 如果今天有人知道 Get/Post等 路由除了經過Token等有效驗證外，應還要檢查是否有該Controller/Action權限。
 2. 假使今天有個控制器都是在做查詢類的情境，那可能會有完全共用的輸出(Component View)，其所需的Response Model物件肯定也一樣，此時就可以使用，但這總感覺不太對[Filter]味，待研究`[ActionFilter]`實務上究竟是如還運用。
 3. 資料前處理(檢核)
 4. 後處理應該是包裝送出?
+ -->
+
+
 
 > 註冊全域Filter Mvc.Add(Factory)  
 > 可嘗試複寫其驗證方法 `CookieAuthenticationEvents`
@@ -1206,7 +1252,10 @@ ref:
 Lading... 
 
 ## 找找DbContext的Base層大家會怎麼去實作並應用 (後面再研究)
-1. 有可能在Query或其他SaveChange()時，跑去寫一行Log或將所執行的動作回寫至DB特定的紀錄表 這類應用
+- 有可能在Query或其他SaveChange()時，跑去寫一行Log或將所執行的動作回寫至DB特定的紀錄表 這類應用
+
+ref:
+1. https://www.tpisoftware.com/tpu/articleDetails/2910
 
 Lading... 
 
